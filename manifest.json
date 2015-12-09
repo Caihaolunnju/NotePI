@@ -1,11 +1,32 @@
 {
-	"name":"NotePI",
-	"version":"0.0.0.1",
-	"description":"Chrome note plug-in",
-	"manifest_version": 2,
-	"browser_action":{
-		"default_icon":"icon.png",
-		"default_title":"Chrome Note Plug-in",
-		"default_popup":"eventpage.html"
-	}
+    "manifest_version": 2,
+    "name": "NotePI",
+    "description": "Chrome note extension",
+    "version": "0.0.1",
+    "browser_action": {
+        "default_icon": "resource/note.png",
+        "default_popup": "popup/popup.html"
+    },
+    "background": {
+        "scripts": ["vendor/require.js", "background/eventPage.js"],
+        "persistent": false
+    },
+    "content_scripts": [
+        {
+          "matches": ["http://*/*", "https://*/*"],
+          "js": ["content/contentScript.js"]
+        }
+    ],
+    "permissions": [
+        "identity",
+        "storage",
+        "https://ajax.googleapis.com/*",
+        "https://www.googleapis.com/drive/v2/files/*"
+    ],
+    "oauth2": {
+        "client_id": "617412293902-138v5kmi17m302tfslu8p2b9kdamthkb.apps.googleusercontent.com",
+        "scopes": [
+          "https://www.googleapis.com/auth/drive"
+        ]
+    }
 }
