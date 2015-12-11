@@ -1,7 +1,6 @@
 /**
  * 云端存储服务模块
  */
-
  require.config({
      paths: {
         'page': 'notecloud/page',
@@ -17,6 +16,8 @@ define(['page', 'gdapi'], function(Page, gdapi){
     var PAGE_DATA_NAME = 'pagedata';
     // 内部存储的token值
     var token = '';
+    // notecloud是否在本地模拟
+    var isLocal = false;
 
     /**
      * 使用指定的页面url创建一个page存储对象
@@ -26,6 +27,37 @@ define(['page', 'gdapi'], function(Page, gdapi){
      * @param  {Function} callback callback(err, page)
      */
     var page = function(pageUrl, callback){
+        if(isLocal)
+            getLocalPage(pageUrl, callback);
+        else
+            getCloudPage(pageUrl, callback);
+    };
+
+    // 同步指定的页面数据
+    var sync = function(page, callback){
+        if(isLocal)
+            syncLocalPage(page, callback);
+        else
+            syncCloudPage(page, callback);
+    };
+
+    // 设置存储是本地的还是远程的
+    var localSimulate = function(local){
+        isLocal = local;
+    };
+
+    /**
+     * 设置或取出google drive的token
+     * @param  {String} t token字符串
+     */
+    var gdtoken = function(t){
+        // 如果没有传入参数则返回当前token
+        if(!t) return token;
+        token = t;
+    };
+
+    // 获取云端页面数据
+    function getCloudPage(pageUrl, callback){
         console.debug('准备根目录...');
         prepareDir(token, ROOT_NAME, null, function(err, rootId){ // 这里的root指ROOT_NAME值的目录
             if(err) return callback(err);
@@ -45,10 +77,33 @@ define(['page', 'gdapi'], function(Page, gdapi){
                 });
             });
         });
-    };
+    }
 
-    // 同步指定的页面数据
-    var sync = function(page, callback){
+    // 获取本地模拟页面数据
+    // 注意由于chrome的限制，最大存储容量应该限制在5MB以内，因此请不要将page对象修改得太大，否则回存得时候可能会出现问题
+    function getLocalPage(pageUrl, callback){
+        var pageId = namify(pageUrl);
+        // 如果没有就新建一个
+        if(!chrome.storage.local[pageId])
+            chrome.storage.local[pageId] = {};
+
+        var localPage = chrome.storage.local[pageId];
+        var page = {};
+
+        // 将本地存储数据复制到page对象后返回
+        for(var key in localPage){
+            if(!localPage.hasOwnProperty(key))
+                continue;
+            page[key] = localPage[key];
+        }
+
+        // 设置pageId，同步的时候要用到
+        page.__pageId__ = pageId;
+        callback(null, page);
+    }
+
+    // 同步云端数据页面
+    function syncCloudPage(page, callback){
         // 包装Page对象
         page = new Page(page);
 
@@ -59,7 +114,8 @@ define(['page', 'gdapi'], function(Page, gdapi){
         gdapi.get(token, fileId, function(err, cloudPage){
             if(err) return callback(err);
 
-            page.__merge__(cloudPage);
+            // 应该不需要先将云端数据合并到本地再上传，直接将本地上传覆盖就好了。所以这里先注了
+            // page.__merge__(cloudPage);
             gdapi.update(token, {
                 'fileId': fileId,
                 'data': page
@@ -67,17 +123,17 @@ define(['page', 'gdapi'], function(Page, gdapi){
                 callback(err, fileId);
             });
         });
-    };
+    }
 
-    /**
-     * 设置或取出google drive的token
-     * @param  {String} t token字符串
-     */
-    var gdtoken = function(t){
-        // 如果没有传入参数则返回当前token
-        if(!t) return token;
-        token = t;
-    };
+    // 在本地同步页面数据
+    function syncLocalPage(page, callback){
+        var pageId = page.__pageId__;
+        if(!pageId)
+            return callback(new Error("本地同步时找不到pageId"));
+
+        chrome.storage.local[pageId] = page;
+        callback(null, pageId);
+    }
 
     /**
      * 准备指定文件
@@ -164,6 +220,7 @@ define(['page', 'gdapi'], function(Page, gdapi){
     return {
         'gdtoken': gdtoken,
         'page': page,
-        'sync': sync
+        'sync': sync,
+        'localSimulate': localSimulate
     };
 });

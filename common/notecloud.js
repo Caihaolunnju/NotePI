@@ -1,5 +1,6 @@
 /**
- * 供popup层使用的notecloud接口
+ * 提供使用的notecloud接口，将通过消息传递机制与notecloud模块进行交互
+ * 建议所有用户使用本模块来调用存储服务
  */
 define(function(){
     // 从google drive端获取页面对象
