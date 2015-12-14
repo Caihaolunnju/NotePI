@@ -3,7 +3,7 @@
  */
  require.config({
      paths: {
-        'page': 'notecloud/page',
+        'page': 'notecloud/page', // 由于在eventPage.js中已经指定了baseUrl，因此这里不用再写了
         'http': 'notecloud/http',
         'gdapi': 'notecloud/gdapi'
  　　}

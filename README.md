@@ -14,7 +14,7 @@
 ### 使用须知
 Google Drive同步相关代码已经集成进项目中。
 
-为了与存储模块交互，引用common/notecloud.js模块再使用即可，使用方法可参见popup/popup.js文件
+为了与存储模块交互，引用common/notecloud.js模块再使用即可，使用方法可参见popup/cloudTest.js文件
 
 notecloud模块已经默认设置成本地模式，即数据都可以存储在本地，而无需访问google drive，方便开发
 
