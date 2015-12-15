@@ -14,7 +14,7 @@
     "content_scripts": [
         {
           "matches": ["http://*/*", "https://*/*"],
-          "js": ["content/contentScript.js"]
+          "js": ["vendor/jquery-2.1.4.min.js","vendor/raphael-min.js","content/contentScript.js"]
         }
     ],
     "permissions": [
