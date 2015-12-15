@@ -26,5 +26,7 @@ notecloud模块已经默认设置成本地模式，即数据都可以存储在�
 - 使用common/notecloud.js中暴露的接口来调用服务，它是通过向eventPage发送消息来请求实际的服务的。
 - manifest.json中有一个oauth2.client_id字段，用于向用户申请权限时验证插件身份，它和插件本身的id一一对应（加载插件的时候会自动生成）。但是我发现即便是同一个项目，被不同机器上的chrome加载后插件id会发生改变，导致client_id和id对不上，插件在请求用户权限时就会出现问题。因此如果要测试Google Drive存储功能，建议使用你的chrome上显示的插件id去申请一个新的client_id填回这个字段即可
 
+**更新：发现在mainfest.json文件文件中指定key就可以固定插件id，第三点的限制将不存在**
+
 > 要申请一个client id，可以参考https://developers.google.com/drive/web/quickstart/js#step_1_turn_on_the_api_name
 > 在第四步，我们的插件本质上说并不是网站而是Chrome App，因此这里类型选择Chrome App。然后名称随意，Application ID填写你的Chrome在『扩展程序』页面加载完本项目后显示的ID，应该是一个很长的无规律字符串。创建完成后，显示的client id就是我们要的oauth2.client_id值
