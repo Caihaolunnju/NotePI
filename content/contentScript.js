@@ -6,6 +6,7 @@ var url=window.location.href;
 var width = document.body.scrollWidth;
 var height = document.body.scrollHeight;
 var canvas = document.createElement('div');
+
 canvas.setAttribute('style','position:absolute;z-index:999');
 canvas.style.pointerEvents="none";
 canvas.style.height=height;
@@ -17,6 +18,16 @@ var mousedown = false,lastX, lastY, path, pathString;
 var brush=false,eraser=false;
 var paper = new Raphael(canvas,width,height);
 var pathSet = paper.set();
+
+//先查看下该页面是否已经有笔记了
+chrome.runtime.sendMessage({"command":"page","data":url}, function(response){
+	console.debug(response);
+	//如果先前已经有笔记，则将以前的饿笔记取出，在画布上重现
+	if(typeof response != "undefined"){
+		if(typeof response.pathArray != "undefined")
+			Array2Set(response.pathArray);
+	}
+});
 
 $(canvas).mousedown(function (e) {
 	mousedown = true;
@@ -54,24 +65,24 @@ $(canvas).mousemove(function (e) {
 //根据popup发出的消息进行回应
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
-		if (request.action == "brush")
+		if (request.cmd == "brush")
 		    brushAction();
-		else if(request.action == "eraser")
+		else if(request.cmd == "eraser")
 		  	eraserAction();
-		else if(request.action == "save") {
+		else if(request.cmd == "save") {
 			saveAction(sendResponse);
 		}
 });
 
 //画刷的动作
-var brushAction = function(){
+function brushAction(){
 	canvas.style.pointerEvents="auto";
 	brush=true;
     eraser=false;
-};
+}
 
 //橡皮擦的动作
-var eraserAction = function(){
+function eraserAction(){
 	canvas.style.pointerEvents="auto";
 	eraser=true;
     brush=false;
@@ -84,16 +95,34 @@ var eraserAction = function(){
             }
         });
     });
-};
+}
 
 //保存的动作
-var saveAction = function(sendResponse){
+function saveAction(sendResponse){
 	eraser=false;
 	brush=false;
 	canvas.style.pointerEvents="none";
-	var pathArray=new Array();
+	var pathArray = Set2Array(pathSet);
+	sendResponse({"url":url,"pathArray":pathArray});
+}
+
+//将path集合中的路径全都提出来组成数组
+function Set2Array(pathSet){
+	pathArray=new Array();
 	pathSet.forEach(function(element){
 		pathArray.push(element.attr('path'));
 	});
-	sendResponse({"url":url,"pathArray":pathArray});
-};
+	return pathArray;
+}
+
+//将含有路径的字符串数组组成path集合,并在画布中显示
+function Array2Set(pathArray){
+	pathArray.forEach(function (elements){
+		pathstring = "";
+		elements.forEach(function (element){
+			pathstring += element;
+		});
+		path = paper.path(pathstring);
+		pathSet.push(path);
+	});
+}
