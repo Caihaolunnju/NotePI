@@ -18,6 +18,8 @@ define(['page', 'gdapi'], function(Page, gdapi){
     var token = '';
     // notecloud是否在本地模拟
     var isLocal = false;
+    // 自动同步的时间间隔
+    var autoSyncInterval = null;
 
     /**
      * 使用指定的页面url创建一个page存储对象
@@ -27,23 +29,40 @@ define(['page', 'gdapi'], function(Page, gdapi){
      * @param  {Function} callback callback(err, page)
      */
     var page = function(pageUrl, callback){
-        if(isLocal)
-            getLocalPage(pageUrl, callback);
-        else
+        // 本地
+        if(isLocal) return getLocalPage(pageUrl, callback);
+        // 云端
+        identify(function(){
             getCloudPage(pageUrl, callback);
+        });
     };
 
-    // 同步指定的页面数据
+    /**
+     * 同步指定的页面数据
+     * @param  {object}   page     要同步的页面数据
+     * @param  {Function} callback callback(err, fileId)
+     */
     var sync = function(page, callback){
-        if(isLocal)
-            syncLocalPage(page, callback);
-        else
+        // 本地
+        if(isLocal) return syncLocalPage(page, callback);
+        // 云端
+        identify(function(){
             syncCloudPage(page, callback);
+        });
     };
 
-    // 设置存储是本地的还是远程的
-    var localSimulate = function(local){
-        isLocal = local;
+    /**
+     * 配置cloud
+     * @param  {object} config 配置选项
+     */
+    var configuration = function(config){
+        // 读取配置选项
+        var local = config.local;
+        var interval = config.autoSyncInterval;
+
+        // 设置对应的数值
+        if(local) isLocal = local;
+        if(interval) autoSyncInterval = interval;
     };
 
     /**
@@ -55,6 +74,14 @@ define(['page', 'gdapi'], function(Page, gdapi){
         if(!t) return token;
         token = t;
     };
+
+    // 身份验证，获取并设置token
+    function identify(callback){
+        chrome.identity.getAuthToken({'interactive': true}, function(tk){
+            token = tk;
+            callback();
+        });
+    }
 
     // 获取云端页面数据
     function getCloudPage(pageUrl, callback){
@@ -221,6 +248,6 @@ define(['page', 'gdapi'], function(Page, gdapi){
         'gdtoken': gdtoken,
         'page': page,
         'sync': sync,
-        'localSimulate': localSimulate
+        'configuration': configuration
     };
 });
