@@ -99,6 +99,7 @@ define(['page', 'gdapi'], function(Page, gdapi){
                     var page = new Page();
                     page.__fileId__ = fileId;
                     page.__merge__(pageData);
+                    page.__autoSync__(sync, autoSyncInterval);
 
                     callback(null, page);
                 });
@@ -115,17 +116,14 @@ define(['page', 'gdapi'], function(Page, gdapi){
             chrome.storage.local[pageId] = {};
 
         var localPage = chrome.storage.local[pageId];
-        var page = {};
-
-        // 将本地存储数据复制到page对象后返回
-        for(var key in localPage){
-            if(!localPage.hasOwnProperty(key))
-                continue;
-            page[key] = localPage[key];
-        }
+        var page = new Page();
 
         // 设置pageId，同步的时候要用到
         page.__pageId__ = pageId;
+        page.__merge__(localPage);
+        page.__pageId__ = pageId;
+        page.__autoSync__(sync, autoSyncInterval);
+
         callback(null, page);
     }
 
@@ -154,10 +152,13 @@ define(['page', 'gdapi'], function(Page, gdapi){
 
     // 在本地同步页面数据
     function syncLocalPage(page, callback){
+        page = new Page(page);
+
         var pageId = page.__pageId__;
         if(!pageId)
             return callback(new Error("本地同步时找不到pageId"));
 
+        console.debug("准备对%s进行同步...", pageId);
         chrome.storage.local[pageId] = page;
         callback(null, pageId);
     }

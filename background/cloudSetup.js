@@ -10,7 +10,7 @@ define(['cloud'], function(cloud){
         // 但是要注意的是，本地存储上限只有5MB，请谨慎使用
         cloud.configuration({
             local: true, // 将这句话注掉就变成了正常模式，将与Google Drive交互，容量『理论上』不受限制
-            autoSyncInterval: 5000 // 这里设置了自动同步的时间间隔
+            // autoSyncInterval: 60000 // 这里设置了自动同步的时间间隔
         });
         registerCloud(cloud);
     };
@@ -32,7 +32,7 @@ function registerCloud(cloud){
                 // chrome的响应消息只能发出一个对象，因此这里error就简单地输出
                 if(err) return console.error(err);
                 sendResponse(page);
-                console.debug("消息已回送");
+                console.debug("page请求的响应已回送");
             });
 
             // 保持sendResponse有效
@@ -47,7 +47,7 @@ function registerCloud(cloud){
                 // chrome的响应消息只能发出一个对象，因此这里error就简单地输出
                 if(err) return console.error(err);
                 sendResponse();
-                console.debug("消息已回送");
+                console.debug("sync请求的响应已回送");
             });
             return true;
         }
