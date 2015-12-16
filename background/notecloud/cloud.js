@@ -1,15 +1,15 @@
 /**
  * 云端存储服务模块
  */
- require.config({
-     paths: {
-        'page': 'notecloud/page', // 由于在eventPage.js中已经指定了baseUrl，因此这里不用再写了
-        'http': 'notecloud/http',
-        'gdapi': 'notecloud/gdapi'
- 　　}
- });
 
-define(['page', 'gdapi'], function(Page, gdapi){
+var cloud = {
+    'gdtoken': null,
+    'page': null,
+    'sync': null,
+    'configuration': null
+};
+
+!function(){
     // 在google drive上存储的根目录名
     var ROOT_NAME = 'notecloud';
     // 在每个页面文件夹中的页面数据名
@@ -28,7 +28,7 @@ define(['page', 'gdapi'], function(Page, gdapi){
      * @param  {String}   pageUrl  存储对象对应的url
      * @param  {Function} callback callback(err, page)
      */
-    var page = function(pageUrl, callback){
+    var page = cloud.page = function(pageUrl, callback){
         // 本地
         if(isLocal) return getLocalPage(pageUrl, callback);
         // 云端
@@ -42,7 +42,7 @@ define(['page', 'gdapi'], function(Page, gdapi){
      * @param  {object}   page     要同步的页面数据
      * @param  {Function} callback callback(err, fileId)
      */
-    var sync = function(page, callback){
+    var sync = cloud.sync = function(page, callback){
         // 本地
         if(isLocal) return syncLocalPage(page, callback);
         // 云端
@@ -55,7 +55,7 @@ define(['page', 'gdapi'], function(Page, gdapi){
      * 配置cloud
      * @param  {object} config 配置选项
      */
-    var configuration = function(config){
+    var configuration = cloud.configuration = function(config){
         // 读取配置选项
         var local = config.local;
         var interval = config.autoSyncInterval;
@@ -69,7 +69,7 @@ define(['page', 'gdapi'], function(Page, gdapi){
      * 设置或取出google drive的token
      * @param  {String} t token字符串
      */
-    var gdtoken = function(t){
+    var gdtoken = cloud.gdtoken = function(t){
         // 如果没有传入参数则返回当前token
         if(!t) return token;
         token = t;
@@ -244,11 +244,4 @@ define(['page', 'gdapi'], function(Page, gdapi){
         // 去掉所有的点和斜杠
         return name.replace(/\./g,'').replace(/\//g,'')
     }
-
-    return {
-        'gdtoken': gdtoken,
-        'page': page,
-        'sync': sync,
-        'configuration': configuration
-    };
-});
+}();

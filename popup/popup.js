@@ -7,7 +7,7 @@ require.config({
 });
 
 requirejs(['jquery','cloudTest','notecloud'], function($,ct,notecloud){
-    //ct.setup();
+    ct.setup();
      /*
     * “画笔”和“橡皮”的功能
     */

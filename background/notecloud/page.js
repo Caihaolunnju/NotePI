@@ -2,8 +2,10 @@
  * page对象
  */
 
-define(function(){
-    var Page = function(pageData){
+var Page;
+
+!function(){
+    Page = function(pageData){
         // 如果传入的已经是Page对象，那么就直接返回本身
         if(pageData && pageData.constructor.toString().match(/Page/)){
             return pageData;
@@ -53,6 +55,4 @@ define(function(){
             });
         }, interval);
     };
-
-    return Page;
-});
+}();

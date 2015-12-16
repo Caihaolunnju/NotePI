@@ -1,14 +1,21 @@
 /**
  * 提供底层的http通讯服务
  */
-define(function(){
+
+var http = {
+    'get': null,
+    'post': null,
+    'put': null
+};
+
+!function(){
     /**
      * 获取文件的文本内容
      * @param  {String}   token    token
      * @param  {String}   fileId   文件id
      * @param  {Function} callback callback(err, text)
      */
-    var get = function(token, fileId, callback){
+    http.get = function(token, fileId, callback){
         var xhr = new XMLHttpRequest();
         xhr.onload = function(){
             if(this.readyState !== 4 || this.status !== 200 )
@@ -27,7 +34,7 @@ define(function(){
         xhr.send();
     };
 
-    var post = function(token, package, callback){
+    http.post = function(token, package, callback){
         var xhr = new XMLHttpRequest();
         xhr.onload = function(){
             if(this.readyState !== 4 || this.status !== 200 )
@@ -68,7 +75,7 @@ define(function(){
         xhr.send(content);
     };
 
-    var put = function(token, package, callback){
+    http.put = function(token, package, callback){
         var xhr = new XMLHttpRequest();
         xhr.onload = function(){
             if(this.readyState !== 4 || this.status !== 200 )
@@ -111,11 +118,4 @@ define(function(){
 
         return parts.join('\r\n');
     }
-
-    // 导出接口
-    return {
-        'get': get,
-        'post': post,
-        'put': put
-    };
-});
+}();

@@ -1,13 +1,23 @@
 /**
  * 提供访问Google API的接口
  */
-define(['http'], function(http){
+
+var gdapi = {
+    'list': null,
+    'get': null,
+    'search': null,
+    'upload': null,
+    'update': null,
+    'createFolder': null
+};
+
+!function(){
     /**
      * 获取所有文件列表
      * @param  {String}   token    token
      * @param  {Function} callback callback(err, files)
      */
-    var list = function(token, callback){
+    var list = gdapi.list = function(token, callback){
         http.get(token, null, function(err, text){
             if(err) return callback(err);
 
@@ -28,7 +38,7 @@ define(['http'], function(http){
     * @param  {Function} callback callback(err, fileId)
     * @return {[type]}            [description]
     */
-    var search = function(token, fileName, parentId, callback){
+    var search = gdapi.search = function(token, fileName, parentId, callback){
         parentId = parentId || 'root';
         // 这里简单地使用list全遍历一遍
         // 如果有需要可以改为使用专门的search API
@@ -59,7 +69,7 @@ define(['http'], function(http){
      * @param  {Function} callback   callback(err, fileId)
      * @return {[type]}              [description]
      */
-    var createFolder = function(token, folderName, parentId, callback){
+    var createFolder = gdapi.createFolder = function(token, folderName, parentId, callback){
         http.post(token, {
             "mode": "folder",
             // 注意这里是创建文件夹，并没有元数据
@@ -80,7 +90,7 @@ define(['http'], function(http){
      * @param  {String}   fileId   文件id
      * @param  {Function} callback callback(err, fileObject)
      */
-    var get = function(token, fileId, callback){
+    var get = gdapi.get = function(token, fileId, callback){
         http.get(token, fileId, function(err, text){
             if(err) return callback(err);
 
@@ -96,7 +106,7 @@ define(['http'], function(http){
      * @param  {Object}   package  要上传的文件的数据打包对象，可以包含metadata, data两种字段
      * @param  {Function} callback callback(err, fileId)
      */
-    var upload = function(token, package, callback){
+    var upload = gdapi.upload = function(token, package, callback){
         var postObj = {};
         postObj.data = package.data;//实际数据json对象
 
@@ -121,7 +131,7 @@ define(['http'], function(http){
      * @param  {Object}   package  要更新的文件的数据打包对象, 必须包含fileId字段和data字段
      * @param  {Function} callback callback(err, fileId)
      */
-    var update = function(token, package, callback){
+    var update = gdapi.update = function(token, package, callback){
         if(!package.fileId) return callback(new Error('更新文件时找不到fileId'));
 
         var putObj = {};
@@ -133,13 +143,4 @@ define(['http'], function(http){
             callback(null, JSON.parse(text).id);
         });
     };
-
-    return{
-        'list': list,
-        'get': get,
-        'search': search,
-        'upload': upload,
-        'update': update,
-        'createFolder': createFolder
-    };
-});
+}();

@@ -8,7 +8,13 @@
         "default_popup": "popup/popup.html"
     },
     "background": {
-        "scripts": ["vendor/require.js", "background/eventPage.js"],
+        "scripts": [
+            "background/notecloud/page.js",
+            "background/notecloud/http.js",
+            "background/notecloud/gdapi.js",
+            "background/notecloud/cloud.js",
+            "background/cloudSetup.js",
+            "background/eventPage.js"],
         "persistent": false
     },
     "content_scripts": [
