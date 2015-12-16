@@ -5,18 +5,15 @@
 var url=window.location.href;
 var width = document.body.scrollWidth;
 var height = document.body.scrollHeight;
-var canvas = document.createElement('div');
+var $canvas = $("<div id='notepi-canvas'>");
 
-canvas.setAttribute('style','position:absolute;z-index:999');
-canvas.style.pointerEvents="none";
-canvas.style.height=height;
-canvas.style.width=width;
-var first=document.body.firstChild;
-document.body.insertBefore(canvas,first);
+$canvas.height(height);
+$canvas.width(width);
+$("body").prepend($canvas);
 
 var mousedown = false,lastX, lastY, path, pathString;
 var brush=false,eraser=false;
-var paper = new Raphael(canvas,width,height);
+var paper = new Raphael($canvas[0],width,height);
 var pathSet = paper.set();
 
 //先查看下该页面是否已经有笔记了
@@ -29,9 +26,10 @@ chrome.runtime.sendMessage({"command":"page","data":url}, function(response){
 	}
 });
 
-$(canvas).mousedown(function (e) {
+$canvas.mousedown(function (e) {
 	mousedown = true;
-	if(brush){    
+	if(brush){
+		$canvas.addClass("drawing");
 	    var x = e.offsetX,
 	        y = e.offsetY;
 
@@ -42,14 +40,15 @@ $(canvas).mousedown(function (e) {
 	}
 });
 
-$(canvas).mouseup(function () {
+$canvas.mouseup(function () {
 	mousedown = false;
-	if(brush){        
+	if(brush){
+		$canvas.removeClass("drawing");
 	    pathSet.push(path);
 	}
 });
 
-$(canvas).mousemove(function (e) {
+$canvas.mousemove(function (e) {
 	if (!mousedown || !brush) {
 	    return;
 	}
@@ -76,14 +75,14 @@ chrome.runtime.onMessage.addListener(
 
 //画刷的动作
 function brushAction(){
-	canvas.style.pointerEvents="auto";
+	$canvas.css("pointer-events","auto");
 	brush=true;
     eraser=false;
 }
 
 //橡皮擦的动作
 function eraserAction(){
-	canvas.style.pointerEvents="auto";
+	$canvas.css("pointer-events","auto");
 	eraser=true;
     brush=false;
 
@@ -101,14 +100,14 @@ function eraserAction(){
 function saveAction(sendResponse){
 	eraser=false;
 	brush=false;
-	canvas.style.pointerEvents="none";
+	$canvas.css("pointer-events","none");
 	var pathArray = Set2Array(pathSet);
 	sendResponse({"url":url,"pathArray":pathArray});
 }
 
 //将path集合中的路径全都提出来组成数组
 function Set2Array(pathSet){
-	pathArray=new Array();
+	pathArray=[];
 	pathSet.forEach(function(element){
 		pathArray.push(element.attr('path'));
 	});

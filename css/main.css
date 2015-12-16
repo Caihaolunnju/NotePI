@@ -1,0 +1,9 @@
+#notepi-canvas {
+	position : fixed;
+	z-index : 999;
+	pointer-events : none;
+}
+
+.drawing {
+	cursor: crosshair;
+}
