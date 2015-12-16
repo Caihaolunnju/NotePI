@@ -1,8 +1,8 @@
-/**
-*SVG编辑器功能
-*/
+/*
+ * SVG编辑器功能
+ */
 //设置svg画布
-var url=window.location.href;
+var url= window.location.href;
 var width = document.body.scrollWidth;
 var height = document.body.scrollHeight;
 var $canvas = $("<div id='notepi-canvas'>");

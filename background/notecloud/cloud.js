@@ -2,6 +2,7 @@
  * 云端存储服务模块
  */
 
+// 全局cloud命名空间
 var cloud = {
     'gdtoken': null,
     'page': null,
@@ -9,6 +10,7 @@ var cloud = {
     'configuration': null
 };
 
+// 立即执行函数
 !function(){
     // 在google drive上存储的根目录名
     var ROOT_NAME = 'notecloud';
