@@ -13,7 +13,7 @@
             "background/notecloud/http.js",
             "background/notecloud/gdapi.js",
             "background/notecloud/cloud.js",
-            "background/cloudSetup.js",
+            "background/notecloud.js",
             "background/eventPage.js"],
         "persistent": false
     },
@@ -24,6 +24,7 @@
               "vendor/jquery-2.1.4.min.js",
               "vendor/raphael-min.js",
               "content/editor.js",
+              "content/screenshot.js",
               "content/contentScript.js"
           ],
           "css": ["content/css/main.css","content/css/stroke.css"]
@@ -32,8 +33,7 @@
     "permissions": [
         "identity",
         "storage",
-        "https://ajax.googleapis.com/*",
-        "https://www.googleapis.com/drive/v2/files/*"
+        "<all_urls>"
     ],
     "oauth2": {
         "client_id": "617412293902-138v5kmi17m302tfslu8p2b9kdamthkb.apps.googleusercontent.com",
