@@ -28,13 +28,6 @@ setTimeout(function(){
     scroll(pageOffset, pageOffset + visibleHeight);
 }, 5000);
 
-// 测试
-/*
-scroll(0, 100);
-scroll(180, 280);
-scroll(110, 210);
-*/
-
 // Span对象构造函数
 function Span(start, end){
     console.assert(start < end);
@@ -151,7 +144,7 @@ function emitNewSpan(x1, x2, span){
             var dx = 0;
             var dy = span.start;
             var dWidth = $(document).width();
-            var dHeight = sHeight / sWidth * dWidth;
+            var dHeight = sHeight / sWidth * dWidth + 10; // 这里修补了计算误差（或许），如果不加这个偏移可能会导致页面上拼接不够紧密，块之间出现白条。另外，这里还没有考虑到window.devicePixelRatio的影响，等待在不同设备上的测试
 
             pageCtx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
             var dataURL = pageCanvas.toDataURL();
