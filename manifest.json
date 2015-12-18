@@ -14,7 +14,9 @@
             "background/notecloud/gdapi.js",
             "background/notecloud/cloud.js",
             "background/notecloud.js",
-            "background/eventPage.js"],
+            "background/pageshot.js",
+            "background/eventPage.js"
+        ],
         "persistent": false
     },
     "content_scripts": [
@@ -24,7 +26,7 @@
               "vendor/jquery-2.1.4.min.js",
               "vendor/raphael-min.js",
               "content/editor.js",
-              "content/screenshot.js",
+              "content/pageshot.js",
               "content/contentScript.js"
           ],
           "css": ["content/css/main.css","content/css/stroke.css"]
