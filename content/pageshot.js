@@ -13,7 +13,7 @@ $(window).scroll(function(){
         cooling = true;
         setTimeout(function(){
             cooling = false;
-            var pageOffset = $(window).scrollTop();
+            var pageOffset = $(document).scrollTop();
             var visibleHeight = $(window).height();
             scroll(pageOffset, pageOffset + visibleHeight);
         }, 3000);
@@ -23,7 +23,9 @@ $(window).scroll(function(){
 // 先行触发一次
 setTimeout(function(){
     begins = true;
-    scroll(0, $(window).height());
+    var pageOffset = $(document).scrollTop();
+    var visibleHeight = $(window).height();
+    scroll(pageOffset, pageOffset + visibleHeight);
 }, 5000);
 
 // 测试
@@ -137,16 +139,17 @@ function emitNewSpan(x1, x2, span){
     console.assert( x1 <= span.start && span.end <= x2);
 
     screenshot(function(url){
-        console.debug('source:%s', url);
+        console.debug("x1:%s, x2:%s", x1, x2);
+        console.debug(span);
 
         var image = new Image();
         image.onload = function() {
             var sx = 0;
-            var sy = span.start - x1;
+            var sy = (span.start - x1) * window.devicePixelRatio;
             var sWidth = image.width;
             var sHeight = span.length * window.devicePixelRatio;
             var dx = 0;
-            var dy = x1;
+            var dy = span.start;
             var dWidth = $(document).width();
             var dHeight = sHeight / sWidth * dWidth;
 

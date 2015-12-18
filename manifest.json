@@ -26,7 +26,7 @@
               "vendor/jquery-2.1.4.min.js",
               "vendor/raphael-min.js",
               "content/editor.js",
-              "content/pageshot.js",
+              //"content/pageshot.js",
               "content/contentScript.js"
           ],
           "css": ["content/css/main.css","content/css/stroke.css"]
