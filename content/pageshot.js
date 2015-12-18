@@ -8,14 +8,21 @@ var spans = [];
 
 var begins = false; // 截图开始flag
 var cooling = false; // 冷却时间，防止快速滚动的时候频繁截图
+var coolTimeout = null;
 $(window).scroll(function(){
     if(begins && !cooling){
         cooling = true;
-        setTimeout(function(){
+        countingDown();
+    }else if(begins && cooling){
+        // 如果在冷却时间又发生了滚动事件则重新倒计时
+        clearTimeout(coolTimeout);
+        countingDown();
+    }
+
+    function countingDown(){
+        coolTimeout = setTimeout(function(){
             cooling = false;
-            var pageOffset = $(document).scrollTop();
-            var visibleHeight = $(window).height();
-            scroll(pageOffset, pageOffset + visibleHeight);
+            validScroll();
         }, 3000);
     }
 });
@@ -23,10 +30,15 @@ $(window).scroll(function(){
 // 先行触发一次
 setTimeout(function(){
     begins = true;
+    validScroll();
+}, 5000);
+
+// 有效的滚动操作触发
+function validScroll(){
     var pageOffset = $(document).scrollTop();
     var visibleHeight = $(window).height();
     scroll(pageOffset, pageOffset + visibleHeight);
-}, 5000);
+}
 
 // Span对象构造函数
 function Span(start, end){
