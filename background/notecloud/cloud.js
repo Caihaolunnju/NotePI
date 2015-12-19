@@ -14,9 +14,9 @@ var cloud = {
 // 立即执行函数
 !function(){
     // 在google drive上存储的根目录名
-    var ROOT_NAME = 'notecloud';
+    var ROOT = 'notecloud';
     // 在每个页面文件夹中的页面数据名
-    var PAGE_DATA_NAME = 'pagedata';
+    var PAGE_DATA_FILE = 'pagedata';
     // 内部存储的token值
     var token = '';
     // notecloud是否在本地模拟
@@ -25,23 +25,28 @@ var cloud = {
     var autoSyncInterval = null;
 
     /**
-     * 使用指定的页面url创建一个page存储对象
-     * 如果云端没有这个页面的文件夹，则为其创建文件夹。否则加载文件夹中的内容
-     * 最后返回该存储对象
+     * 使用指定的页面url获取一个page存储对象
      * @param  {String}   pageUrl  存储对象对应的url
      * @param  {Function} callback callback(err, page)
      */
     var page = cloud.page = function(pageUrl, callback){
-        cloud.file(pageUrl, PAGE_DATA_NAME, callback);
+        cloud.file(pageUrl, PAGE_DATA_FILE, callback);
     };
 
-
-    var file = cloud.file = function(url, dataName, callback){
+    /**
+     * 使用指定的url获取一个对应于fileName的存储对象
+     * 如果云端没有这个页面的文件夹，则为其创建文件夹。否则加载文件夹中名为fileName文件的内容
+     * 最后返回该存储对象
+     * @param  {string}   url      url,对应于根目录下的一个文件夹
+     * @param  {string}   fileName 在url文件夹下的数据文件名称
+     * @param  {Function} callback callback(err, file)
+     */
+    var file = cloud.file = function(url, fileName, callback){
         // 本地
-        if(isLocal) return getLocalFile(url, dataName, callback);
+        if(isLocal) return getLocalFile(url, fileName, callback);
         // 云端
         identify(function(){
-            getCloudFile(url, dataName, callback);
+            getCloudFile(url, fileName, callback);
         });
     };
 
@@ -92,16 +97,14 @@ var cloud = {
     }
 
     // 获取云端页面数据
-    function getCloudFile(url, dataName, callback){
+    function getCloudFile(url, fileName, callback){
         console.debug('准备根目录...');
-        prepareDir(token, ROOT_NAME, null, function(err, rootId){ // 这里的root指ROOT_NAME值的目录
+        prepareDir(token, ROOT, null, function(err, rootId){ // 这里的root指ROOT值的目录
             if(err) return callback(err);
             console.debug('准备页面目录...');
-            // 每个页面都有自己的一个目录
             prepareDir(token, namify(url), rootId, function(err, fileDirId){
                 console.debug('准备页面数据...');
-                // 准备页面数据
-                prepareFile(token, dataName, fileDirId, function(err, fileId, fileData){
+                prepareFile(token, fileName, fileDirId, function(err, fileId, fileData){
                     if(err) return callback(err);
 
                     var file = new NoteFile();
@@ -117,22 +120,22 @@ var cloud = {
 
     // 获取本地模拟页面数据
     // 注意由于chrome的限制，最大存储容量应该限制在5MB以内，因此请不要将file对象修改得太大，否则回存得时候可能会出现问题
-    function getLocalFile(url, dataName, callback){
+    function getLocalFile(url, fileName, callback){
         var localId = namify(url);
         // 有必要的话进行初始化
         if(!chrome.storage.local[localId]){
             var local = chrome.storage.local[localId] = {};
-            local[dataName] = {};
-        }else if( !chrome.storage.local[localId][dataName] ){
-            chrome.storage.local[localId][dataName] = {};
+            local[fileName] = {};
+        }else if( !chrome.storage.local[localId][fileName] ){
+            chrome.storage.local[localId][fileName] = {};
         }
 
-        var localFile = chrome.storage.local[localId][dataName];
+        var localFile = chrome.storage.local[localId][fileName];
         var file = new NoteFile();
 
         // 设置localId，同步的时候要用到
         file.__localId__ = localId;
-        file.__dataName__ = dataName;
+        file.__fileName__ = fileName;
         file.__merge__(localFile);
         file.__autoSync__(sync, autoSyncInterval);
 
@@ -165,12 +168,12 @@ var cloud = {
         file = new NoteFile(file);
 
         var localId = file.__localId__;
-        var dataName = file.__dataName__;
-        if(!localId || !dataName)
-            return callback(new Error("本地同步时找不到localId或dataName"));
+        var fileName = file.__fileName__;
+        if(!localId || !fileName)
+            return callback(new Error("本地同步时找不到localId或fileName"));
 
         console.debug("准备对%s进行同步...", localId);
-        chrome.storage.local[localId][dataName] = file;
+        chrome.storage.local[localId][fileName] = file;
         callback(null, localId);
     }
 
@@ -192,7 +195,7 @@ var cloud = {
                 console.debug('页面文件%s不存在，创建...', fileName);
                 gdapi.upload(token, {
                     'metadata':{
-                        'title': PAGE_DATA_NAME,
+                        'title': PAGE_DATA_FILE,
                         'parents':[{'id': parentId}]
                     },
                     'data': {}, // 创建一个空文本
