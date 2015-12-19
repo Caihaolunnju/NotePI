@@ -6,6 +6,7 @@
 var cloud = {
     'gdtoken': null,
     'page': null,
+    'file': null,
     'sync': null,
     'configuration': null
 };
@@ -31,25 +32,30 @@ var cloud = {
      * @param  {Function} callback callback(err, page)
      */
     var page = cloud.page = function(pageUrl, callback){
+        cloud.file(pageUrl, PAGE_DATA_NAME, callback);
+    };
+
+
+    var file = cloud.file = function(url, dataName, callback){
         // 本地
-        if(isLocal) return getLocalPage(pageUrl, callback);
+        if(isLocal) return getLocalFile(url, dataName, callback);
         // 云端
         identify(function(){
-            getCloudPage(pageUrl, callback);
+            getCloudFile(url, dataName, callback);
         });
     };
 
     /**
      * 同步指定的页面数据
-     * @param  {object}   page     要同步的页面数据
+     * @param  {object}   file     要同步的页面数据
      * @param  {Function} callback callback(err, fileId)
      */
-    var sync = cloud.sync = function(page, callback){
+    var sync = cloud.sync = function(file, callback){
         // 本地
-        if(isLocal) return syncLocalPage(page, callback);
+        if(isLocal) return syncLocalFile(file, callback);
         // 云端
         identify(function(){
-            syncCloudPage(page, callback);
+            syncCloudFile(file, callback);
         });
     };
 
@@ -86,66 +92,68 @@ var cloud = {
     }
 
     // 获取云端页面数据
-    function getCloudPage(pageUrl, callback){
+    function getCloudFile(url, dataName, callback){
         console.debug('准备根目录...');
         prepareDir(token, ROOT_NAME, null, function(err, rootId){ // 这里的root指ROOT_NAME值的目录
             if(err) return callback(err);
             console.debug('准备页面目录...');
             // 每个页面都有自己的一个目录
-            prepareDir(token, namify(pageUrl), rootId, function(err, pageDirId){
+            prepareDir(token, namify(url), rootId, function(err, fileDirId){
                 console.debug('准备页面数据...');
                 // 准备页面数据
-                prepareFile(token, PAGE_DATA_NAME, pageDirId, function(err, fileId, pageData){
+                prepareFile(token, dataName, fileDirId, function(err, fileId, fileData){
                     if(err) return callback(err);
 
-                    var page = new Page();
-                    page.__fileId__ = fileId;
-                    page.__merge__(pageData);
-                    page.__autoSync__(sync, autoSyncInterval);
+                    var file = new NoteFile();
+                    file.__fileId__ = fileId;
+                    file.__merge__(fileData);
+                    file.__autoSync__(sync, autoSyncInterval);
 
-                    callback(null, page);
+                    callback(null, file);
                 });
             });
         });
     }
 
     // 获取本地模拟页面数据
-    // 注意由于chrome的限制，最大存储容量应该限制在5MB以内，因此请不要将page对象修改得太大，否则回存得时候可能会出现问题
-    function getLocalPage(pageUrl, callback){
-        var pageId = namify(pageUrl);
-        // 如果没有就新建一个
-        if(!chrome.storage.local[pageId])
-            chrome.storage.local[pageId] = {};
+    // 注意由于chrome的限制，最大存储容量应该限制在5MB以内，因此请不要将file对象修改得太大，否则回存得时候可能会出现问题
+    function getLocalFile(url, dataName, callback){
+        var localId = namify(url);
+        // 有必要的话进行初始化
+        if(!chrome.storage.local[localId]){
+            var local = chrome.storage.local[localId] = {};
+            local[dataName] = {};
+        }else if( !chrome.storage.local[localId][dataName] ){
+            chrome.storage.local[localId][dataName] = {};
+        }
 
-        var localPage = chrome.storage.local[pageId];
-        var page = new Page();
+        var localFile = chrome.storage.local[localId][dataName];
+        var file = new NoteFile();
 
-        // 设置pageId，同步的时候要用到
-        page.__pageId__ = pageId;
-        page.__merge__(localPage);
-        page.__pageId__ = pageId;
-        page.__autoSync__(sync, autoSyncInterval);
+        // 设置localId，同步的时候要用到
+        file.__localId__ = localId;
+        file.__dataName__ = dataName;
+        file.__merge__(localFile);
+        file.__autoSync__(sync, autoSyncInterval);
 
-        callback(null, page);
+        callback(null, file);
     }
 
     // 同步云端数据页面
-    function syncCloudPage(page, callback){
+    function syncCloudFile(file, callback){
         // 包装Page对象
-        page = new Page(page);
+        file = new NoteFile(file);
 
-        var fileId = page.__fileId__;
-        if(!fileId) return callback(new Error('page对象中找不到fileId'));
+        var fileId = file.__fileId__;
+        if(!fileId) return callback(new Error('file对象中找不到fileId'));
 
         console.debug("准备对%s进行同步...", fileId);
-        gdapi.get(token, fileId, function(err, cloudPage){
+        gdapi.get(token, fileId, function(err, fileData){
             if(err) return callback(err);
 
-            // 应该不需要先将云端数据合并到本地再上传，直接将本地上传覆盖就好了。所以这里先注了
-            // page.__merge__(cloudPage);
             gdapi.update(token, {
                 'fileId': fileId,
-                'data': page
+                'data': file
             }, function(err, fileId){
                 callback(err, fileId);
             });
@@ -153,16 +161,17 @@ var cloud = {
     }
 
     // 在本地同步页面数据
-    function syncLocalPage(page, callback){
-        page = new Page(page);
+    function syncLocalFile(file, callback){
+        file = new NoteFile(file);
 
-        var pageId = page.__pageId__;
-        if(!pageId)
-            return callback(new Error("本地同步时找不到pageId"));
+        var localId = file.__localId__;
+        var dataName = file.__dataName__;
+        if(!localId || !dataName)
+            return callback(new Error("本地同步时找不到localId或dataName"));
 
-        console.debug("准备对%s进行同步...", pageId);
-        chrome.storage.local[pageId] = page;
-        callback(null, pageId);
+        console.debug("准备对%s进行同步...", localId);
+        chrome.storage.local[localId][dataName] = file;
+        callback(null, localId);
     }
 
     /**
@@ -170,7 +179,7 @@ var cloud = {
      * @param  {[type]}   token    token
      * @param  {[type]}   fileName 要准备（创建）的文件名称
      * @param  {[type]}   parentId 在指定父目录下创建文件，默认为root
-     * @param  {Function} callback callback(err, fileId, pageData)
+     * @param  {Function} callback callback(err, fileId, fileData)
      */
     function prepareFile(token, fileName, parentId, callback){
         parentId = parentId || 'root';
@@ -186,7 +195,7 @@ var cloud = {
                         'title': PAGE_DATA_NAME,
                         'parents':[{'id': parentId}]
                     },
-                    'data': page, // 创建一个空文本
+                    'data': {}, // 创建一个空文本
                 }, function(err, newFileId){
                     if(err) return callback(err);
                     callback(null, newFileId, {});
@@ -195,8 +204,8 @@ var cloud = {
             // 如果存在则获取该文件，返回
             else{
                 console.debug('页面文件%s(%s)已经存在，获取中...', fileName, fileId);
-                gdapi.get(token, fileId, function(err, pageData){
-                    callback(null, fileId, pageData);
+                gdapi.get(token, fileId, function(err, fileData){
+                    callback(null, fileId, fileData);
                 });
             }
         });

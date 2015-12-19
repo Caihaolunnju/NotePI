@@ -9,7 +9,7 @@
     },
     "background": {
         "scripts": [
-            "background/notecloud/page.js",
+            "background/notecloud/file.js",
             "background/notecloud/http.js",
             "background/notecloud/gdapi.js",
             "background/notecloud/cloud.js",
