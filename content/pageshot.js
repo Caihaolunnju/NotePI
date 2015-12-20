@@ -1,3 +1,7 @@
+/**
+ * 截图功能模块
+ */
+
 // 绘制整个网页截图使用的canvas
 var pageCanvas = document.createElement('canvas');
 pageCanvas.height = $(document).height();
@@ -21,55 +25,60 @@ var pageshot = null;
 
 // 本页面的url
 var currentURL = window.location.href;
-// 首先获取页面对应的pageshot对象
-// 然后才能做其他任何动作
-notecloudUtil.pageshot(currentURL, function(pageshot){
-    // 保存全局的pageshot对象
-    window.pageshot = pageshot;
 
-    // 来自popup的pageshot相关消息处理
-    chrome.runtime.onMessage.addListener(function(msg){
-        if(msg.command === 'tabSavePageshot'){
-            console.debug("保存截图...");
-            var currentURL = window.location.href;
+function pageshotInit(done){
+    // 首先获取页面对应的pageshot对象
+    // 然后才能做其他任何动作
+    notecloudUtil.pageshot(currentURL, function(pageshot){
+        // 保存全局的pageshot对象
+        window.pageshot = pageshot;
 
-            pageshot.data = pageCanvas.toDataURL();
-            notecloudUtil.sync(pageshot, function(){
-                console.debug('截图同步完成');
-            });
-        }
+        // 来自popup的pageshot相关消息处理
+        chrome.runtime.onMessage.addListener(function(msg){
+            if(msg.command === 'tabSavePageshot'){
+                console.debug("保存截图...");
+                var currentURL = window.location.href;
 
-        if(msg.command === 'tabOpenPageshot'){
-            console.debug("打开截图...");
-            var currentURL = window.location.href;
-            pageshotUtil.openPageshot(currentURL);
-        }
+                pageshot.data = pageCanvas.toDataURL();
+                notecloudUtil.sync(pageshot, function(){
+                    console.debug('截图同步完成');
+                });
+            }
+
+            if(msg.command === 'tabOpenPageshot'){
+                console.debug("打开截图...");
+                var currentURL = window.location.href;
+                pageshotUtil.openPageshot(currentURL);
+            }
+        });
+
+        $(window).scroll(function(){
+            if(begins && !cooling){
+                cooling = true;
+                countingDown();
+            }else if(begins && cooling){
+                // 如果在冷却时间又发生了滚动事件则重新倒计时
+                clearTimeout(coolTimeout);
+                countingDown();
+            }
+
+            function countingDown(){
+                coolTimeout = setTimeout(function(){
+                    cooling = false;
+                    validScroll();
+                }, SCREENSHOT_INTERVAL);
+            }
+        });
+
+        // 先行触发一次
+        setTimeout(function(){
+            begins = true;
+            validScroll();
+        }, FIRST_SCREENSHOT_TIME);
+
+        done();
     });
-
-    $(window).scroll(function(){
-        if(begins && !cooling){
-            cooling = true;
-            countingDown();
-        }else if(begins && cooling){
-            // 如果在冷却时间又发生了滚动事件则重新倒计时
-            clearTimeout(coolTimeout);
-            countingDown();
-        }
-
-        function countingDown(){
-            coolTimeout = setTimeout(function(){
-                cooling = false;
-                validScroll();
-            }, SCREENSHOT_INTERVAL);
-        }
-    });
-
-    // 先行触发一次
-    setTimeout(function(){
-        begins = true;
-        validScroll();
-    }, FIRST_SCREENSHOT_TIME);
-});
+}
 
 // 有效的滚动操作触发
 function validScroll(){

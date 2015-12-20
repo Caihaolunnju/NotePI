@@ -28,7 +28,7 @@
               "common/notecloudUtil.js",
               "common/pageshotUtil.js",
               "content/note.js",
-              //"content/pageshot.js",
+              "content/pageshot.js",
               "content/contentScript.js"
           ],
           "css": ["content/css/main.css","content/css/stroke.css"]

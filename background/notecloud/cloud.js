@@ -234,7 +234,7 @@ var cloud = {
      */
     function namify(url){
         // 去掉头部http
-        var matches = url.match(/(?:http:\/\/)?([0-9a-z.\/]+)$/);
+        var matches = url.match(/(?:http(?:s)?:\/\/)?(.*)$/);
         var name = null;
         if(matches && matches.length > 1){
             name = matches[1];
@@ -242,7 +242,7 @@ var cloud = {
             name = url;
         }
 
-        // 去掉所有的点和斜杠
-        return name.replace(/\./g,'').replace(/\//g,'')
+        // 去掉所有的奇怪字符
+        return name.replace(/[^0-9a-zA-Z]/g,'')
     }
 }();

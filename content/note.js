@@ -16,15 +16,20 @@ var brush=false,eraser=false;
 var paper = new Raphael($canvas[0],width,height);
 var pathSet = paper.set();
 
-//先查看下该页面是否已经有笔记了
-notecloudUtil.page(url, function(response){
-	console.debug(response);
-	//如果先前已经有笔记，则将以前的饿笔记取出，在画布上重现
-	if(typeof response != "undefined"){
-		if(typeof response.pathArray != "undefined")
-			Array2Set(response.pathArray);
-	}
-});
+// 使用noteInit函数包装的原因请参考contentScript.js
+function noteInit(done){
+	//先查看下该页面是否已经有笔记了
+	notecloudUtil.page(url, function(response){
+		console.debug(response);
+		//如果先前已经有笔记，则将以前的饿笔记取出，在画布上重现
+		if(typeof response != "undefined"){
+			if(typeof response.pathArray != "undefined")
+				Array2Set(response.pathArray);
+		}
+
+		done();
+	});
+}
 
 $canvas.mousedown(function (e) {
 	mousedown = true;

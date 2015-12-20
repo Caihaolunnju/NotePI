@@ -47,7 +47,7 @@ var syncStatusMap = {};
 
     // 将本地修改过的文件对象(page或pageshot)同步到google drive上
     notecloudUtil.sync =  function(file, callback){
-        var id = file.__pageId__ || file.__fileId__;
+        var id = file.__localId__ || file.__fileId__;
         console.assert(id);
 
         if(syncStatusMap[id]){
