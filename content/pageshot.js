@@ -10,10 +10,10 @@ var begins = false; // 截图开始flag
 var cooling = false; // 冷却时间，防止快速滚动的时候频繁截图
 var coolTimeout = null;
 
-// 监听保存截图消息
+// 来自popup的pageshot相关消息处理
 chrome.runtime.onMessage.addListener(function(msg){
     if(msg.command === 'tabSavePageshot'){
-        console.debug("保存截图");
+        console.debug("保存截图...");
         var currentURL = window.location.href;
 
         notecloud.pageshot(currentURL, function(pageshot){
@@ -25,15 +25,9 @@ chrome.runtime.onMessage.addListener(function(msg){
     }
 
     if(msg.command === 'tabOpenPageshot'){
-        console.debug("打开截图");
+        console.debug("打开截图...");
         var currentURL = window.location.href;
-
-        chrome.runtime.sendMessage({
-            'command': 'openPageshot',
-            'data': currentURL
-        }, function(){
-            callback();
-        });
+        pageshot.openPageshot(currentURL);
     }
 });
 

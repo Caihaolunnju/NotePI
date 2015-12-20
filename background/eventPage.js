@@ -1,3 +1,3 @@
-chrome.runtime.onMessage.addListener(function(msg){
-    console.debug(msg);
-});
+/**
+ * 后台公共部分代码写这里
+ */

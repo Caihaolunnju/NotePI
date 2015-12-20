@@ -1,6 +1,8 @@
 /**
  * 提供使用的notecloud接口，将通过消息传递机制与notecloud模块进行交互
- * 建议所有用户使用本模块来调用存储服务
+ * 建议content与popup层用户使用本模块来调用存储服务
+ *
+ * 警告：background层不建议使用本模块，因为在background层使用chrome.runtime.sendMessage的API似乎会导致一些消息发送问题
  */
 var notecloud = {
     'page': null,
@@ -29,7 +31,7 @@ var notecloud = {
         });
     };
 
-    // 将本地修改过的文件对象同步到google drive上
+    // 将本地修改过的文件对象(page或pageshot)同步到google drive上
     notecloud.sync =  function(page, callback){
         chrome.runtime.sendMessage({
             'command': 'sync',

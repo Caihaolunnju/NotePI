@@ -64,8 +64,6 @@ $canvas.mousemove(function (e) {
 //根据popup发出的消息进行回应
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
-		console.debug(request);
-
 		if (request.cmd == "brush")
 		    brushAction();
 		else if(request.cmd == "eraser")

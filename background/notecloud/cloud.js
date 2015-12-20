@@ -92,7 +92,7 @@ var cloud = {
             if(err) return callback(err);
             console.debug('准备页面目录...');
             prepareDir(token, namify(url), rootId, function(err, fileDirId){
-                console.debug('准备页面数据...');
+                console.debug('准备文件数据...');
                 prepareFile(token, fileName, fileDirId, function(err, fileId, fileData){
                     if(err) return callback(err);
 

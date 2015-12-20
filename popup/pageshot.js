@@ -3,6 +3,7 @@
  */
 
 !function(){
+    // 保存截图按钮监听
     $('#savePageshotBtn').on('click', function(){
         // 向当前页面发送保存网页截图的指令
         chrome.tabs.query({
@@ -15,6 +16,7 @@
         });
     });
 
+    // 打开截图按钮监听
     $('#openPageshotBtn').on('click', function(){
         // 向当前页面发送保存网页截图的指令
         chrome.tabs.query({

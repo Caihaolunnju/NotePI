@@ -26,7 +26,8 @@
               "vendor/jquery-2.1.4.min.js",
               "vendor/raphael-min.js",
               "common/notecloud.js",
-              //"content/editor.js",
+              "common/pageshot.js",
+              "content/note.js",
               "content/pageshot.js",
               "content/contentScript.js"
           ],
