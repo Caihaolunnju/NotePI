@@ -9,6 +9,34 @@ var spans = [];
 var begins = false; // 截图开始flag
 var cooling = false; // 冷却时间，防止快速滚动的时候频繁截图
 var coolTimeout = null;
+
+// 监听保存截图消息
+chrome.runtime.onMessage.addListener(function(msg){
+    if(msg.command === 'tabSavePageshot'){
+        console.debug("保存截图");
+        var currentURL = window.location.href;
+
+        notecloud.pageshot(currentURL, function(pageshot){
+            pageshot.data = pageCanvas.toDataURL();
+            notecloud.sync(pageshot, function(){
+                console.debug('截图同步完成');
+            });
+        });
+    }
+
+    if(msg.command === 'tabOpenPageshot'){
+        console.debug("打开截图");
+        var currentURL = window.location.href;
+
+        chrome.runtime.sendMessage({
+            'command': 'openPageshot',
+            'data': currentURL
+        }, function(){
+            callback();
+        });
+    }
+});
+
 $(window).scroll(function(){
     if(begins && !cooling){
         cooling = true;
@@ -23,7 +51,7 @@ $(window).scroll(function(){
         coolTimeout = setTimeout(function(){
             cooling = false;
             validScroll();
-        }, 3000);
+        }, 2000);
     }
 });
 
@@ -31,7 +59,7 @@ $(window).scroll(function(){
 setTimeout(function(){
     begins = true;
     validScroll();
-}, 5000);
+}, 4000);
 
 // 有效的滚动操作触发
 function validScroll(){
@@ -144,9 +172,6 @@ function emitNewSpan(x1, x2, span){
     console.assert( x1 <= span.start && span.end <= x2);
 
     screenshot(function(url){
-        console.debug("x1:%s, x2:%s", x1, x2);
-        console.debug(span);
-
         var image = new Image();
         image.onload = function() {
             var sx = 0;
@@ -156,11 +181,10 @@ function emitNewSpan(x1, x2, span){
             var dx = 0;
             var dy = span.start;
             var dWidth = $(document).width();
-            var dHeight = sHeight / sWidth * dWidth + 10; // 这里修补了计算误差（或许），如果不加这个偏移可能会导致页面上拼接不够紧密，块之间出现白条。另外，这里还没有考虑到window.devicePixelRatio的影响，等待在不同设备上的测试
+            var dHeight = sHeight / sWidth * dWidth;
 
             pageCtx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-            var dataURL = pageCanvas.toDataURL();
-            openScreenShot(dataURL, function(){});
+            console.debug("截图已更新: %s in [%i,%i]", JSON.stringify(span), x1, x2);
         };
         image.src = url;
     });
@@ -172,17 +196,5 @@ function screenshot(callback){
         "command": "screenshot"
     }, function(screenshotUrl){
         callback(screenshotUrl);
-    });
-}
-
-// 通知background去打开指定dataURL的图片
-function openScreenShot(dataURL, callback){
-    chrome.runtime.sendMessage({
-        "command": "openDataURL",
-        "data":{
-            "url": dataURL
-        }
-    }, function(){
-        callback();
     });
 }

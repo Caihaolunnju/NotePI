@@ -4,6 +4,7 @@
  */
 var notecloud = {
     'page': null,
+    'pageshot': null,
     'sync': null
 };
 
@@ -18,7 +19,17 @@ var notecloud = {
         });
     };
 
-    // 将本地修改过的page对象同步到google drive上
+    // 从google drive端获取截图对象
+    notecloud.pageshot = function(url, callback){
+        chrome.runtime.sendMessage({
+            'command': 'pageshot',
+            'data': url
+        }, function(pageshot){
+            callback(pageshot);
+        });
+    };
+
+    // 将本地修改过的文件对象同步到google drive上
     notecloud.sync =  function(page, callback){
         chrome.runtime.sendMessage({
             'command': 'sync',

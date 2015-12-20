@@ -1,7 +1,13 @@
 /**
  * notecloud装配文件
  * 用于将notecloud功能挂载到eventPage页上
+ * 是系统与notecloud之间的中间层
  */
+
+ // 在每个页面文件夹中的页面数据文件名
+ var PAGE_DATA_FILE = 'pagedata';
+ // 在每个页面文件夹中的截图文件名
+ var PAGESHOT_DATA_FILE = 'pageshotdata';
 
 // 这里设置了本地模拟模式，数据将全部存储在本地的chrome.storage.local上面，方便开发
 // 但是要注意的是，本地存储上限只有5MB，请谨慎使用
@@ -19,7 +25,7 @@ function registerCloud(cloud){
         if(msg.command === 'page'){
             var url = msg.data;
             // 获取page对象
-            cloud.page(url, function(err, page){
+            cloud.file(url, PAGE_DATA_FILE, function(err, page){
                 // chrome的响应消息只能发出一个对象，因此这里error就简单地输出
                 if(err) return console.error(err);
                 sendResponse(page);
@@ -27,6 +33,20 @@ function registerCloud(cloud){
             });
 
             // 保持sendResponse有效
+            return true;
+        }
+
+        // contentScript发来的拼接后的网页截图数据，需要保存
+        if(msg.command === 'pageshot'){
+            var url = msg.data;
+            // 获取网页截图对象
+            cloud.file(url, PAGESHOT_DATA_FILE, function(err, pageshot){
+                if(err) return console.error(err);
+
+                sendResponse(pageshot);
+                console.debug("pageshot请求的响应已回送");
+            });
+
             return true;
         }
 

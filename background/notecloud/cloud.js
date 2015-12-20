@@ -5,7 +5,6 @@
 // 全局cloud命名空间
 var cloud = {
     'gdtoken': null,
-    'page': null,
     'file': null,
     'sync': null,
     'configuration': null
@@ -15,23 +14,13 @@ var cloud = {
 !function(){
     // 在google drive上存储的根目录名
     var ROOT = 'notecloud';
-    // 在每个页面文件夹中的页面数据名
-    var PAGE_DATA_FILE = 'pagedata';
+
     // 内部存储的token值
     var token = '';
     // notecloud是否在本地模拟
     var isLocal = false;
     // 自动同步的时间间隔
     var autoSyncInterval = null;
-
-    /**
-     * 使用指定的页面url获取一个page存储对象
-     * @param  {String}   pageUrl  存储对象对应的url
-     * @param  {Function} callback callback(err, page)
-     */
-    var page = cloud.page = function(pageUrl, callback){
-        cloud.file(pageUrl, PAGE_DATA_FILE, callback);
-    };
 
     /**
      * 使用指定的url获取一个对应于fileName的存储对象
@@ -192,10 +181,10 @@ var cloud = {
             if(err) return callback(err);
             // 如果文件不存在则创建
             if(fileId == null){
-                console.debug('页面文件%s不存在，创建...', fileName);
+                console.debug('文件%s不存在，创建...', fileName);
                 gdapi.upload(token, {
                     'metadata':{
-                        'title': PAGE_DATA_FILE,
+                        'title': fileName,
                         'parents':[{'id': parentId}]
                     },
                     'data': {}, // 创建一个空文本
@@ -206,7 +195,7 @@ var cloud = {
             }
             // 如果存在则获取该文件，返回
             else{
-                console.debug('页面文件%s(%s)已经存在，获取中...', fileName, fileId);
+                console.debug('文件%s(%s)已经存在，获取中...', fileName, fileId);
                 gdapi.get(token, fileId, function(err, fileData){
                     callback(null, fileId, fileData);
                 });

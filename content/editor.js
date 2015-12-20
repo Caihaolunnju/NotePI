@@ -17,7 +17,7 @@ var paper = new Raphael($canvas[0],width,height);
 var pathSet = paper.set();
 
 //先查看下该页面是否已经有笔记了
-chrome.runtime.sendMessage({"command":"page","data":url}, function(response){
+notecloud.page(url, function(response){
 	console.debug(response);
 	//如果先前已经有笔记，则将以前的饿笔记取出，在画布上重现
 	if(typeof response != "undefined"){
@@ -64,6 +64,8 @@ $canvas.mousemove(function (e) {
 //根据popup发出的消息进行回应
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
+		console.debug(request);
+
 		if (request.cmd == "brush")
 		    brushAction();
 		else if(request.cmd == "eraser")
