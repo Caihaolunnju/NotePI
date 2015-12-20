@@ -1,6 +1,8 @@
+// 绘制整个网页截图使用的canvas
 var pageCanvas = document.createElement('canvas');
 pageCanvas.height = $(document).height();
 pageCanvas.width = $(document).width();
+
 var pageCtx = pageCanvas.getContext('2d');
 
 // 存放所有span的数组
@@ -8,52 +10,66 @@ var spans = [];
 
 var begins = false; // 截图开始flag
 var cooling = false; // 冷却时间，防止快速滚动的时候频繁截图
-var coolTimeout = null;
+var coolTimeout = null; // 冷却机制使用的timeout对象
 
-// 来自popup的pageshot相关消息处理
-chrome.runtime.onMessage.addListener(function(msg){
-    if(msg.command === 'tabSavePageshot'){
-        console.debug("保存截图...");
-        var currentURL = window.location.href;
+var FIRST_SCREENSHOT_TIME = 4000; // 页面加载后触发第一次截屏的等待时间
+var SCREENSHOT_INTERVAL = 2000; // 每次截屏的时间间隔
 
-        notecloud.pageshot(currentURL, function(pageshot){
+// 页面截图存储对象
+// 可能会定期进行自动同步
+var pageshot = null;
+
+// 本页面的url
+var currentURL = window.location.href;
+// 首先获取页面对应的pageshot对象
+// 然后才能做其他任何动作
+notecloudUtil.pageshot(currentURL, function(pageshot){
+    // 保存全局的pageshot对象
+    window.pageshot = pageshot;
+
+    // 来自popup的pageshot相关消息处理
+    chrome.runtime.onMessage.addListener(function(msg){
+        if(msg.command === 'tabSavePageshot'){
+            console.debug("保存截图...");
+            var currentURL = window.location.href;
+
             pageshot.data = pageCanvas.toDataURL();
-            notecloud.sync(pageshot, function(){
+            notecloudUtil.sync(pageshot, function(){
                 console.debug('截图同步完成');
             });
-        });
-    }
+        }
 
-    if(msg.command === 'tabOpenPageshot'){
-        console.debug("打开截图...");
-        var currentURL = window.location.href;
-        pageshot.openPageshot(currentURL);
-    }
+        if(msg.command === 'tabOpenPageshot'){
+            console.debug("打开截图...");
+            var currentURL = window.location.href;
+            pageshotUtil.openPageshot(currentURL);
+        }
+    });
+
+    $(window).scroll(function(){
+        if(begins && !cooling){
+            cooling = true;
+            countingDown();
+        }else if(begins && cooling){
+            // 如果在冷却时间又发生了滚动事件则重新倒计时
+            clearTimeout(coolTimeout);
+            countingDown();
+        }
+
+        function countingDown(){
+            coolTimeout = setTimeout(function(){
+                cooling = false;
+                validScroll();
+            }, SCREENSHOT_INTERVAL);
+        }
+    });
+
+    // 先行触发一次
+    setTimeout(function(){
+        begins = true;
+        validScroll();
+    }, FIRST_SCREENSHOT_TIME);
 });
-
-$(window).scroll(function(){
-    if(begins && !cooling){
-        cooling = true;
-        countingDown();
-    }else if(begins && cooling){
-        // 如果在冷却时间又发生了滚动事件则重新倒计时
-        clearTimeout(coolTimeout);
-        countingDown();
-    }
-
-    function countingDown(){
-        coolTimeout = setTimeout(function(){
-            cooling = false;
-            validScroll();
-        }, 2000);
-    }
-});
-
-// 先行触发一次
-setTimeout(function(){
-    begins = true;
-    validScroll();
-}, 4000);
 
 // 有效的滚动操作触发
 function validScroll(){
@@ -178,6 +194,7 @@ function emitNewSpan(x1, x2, span){
             var dHeight = sHeight / sWidth * dWidth;
 
             pageCtx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+            pageshot.data = pageCanvas.toDataURL();
             console.debug("截图已更新: %s in [%i,%i]", JSON.stringify(span), x1, x2);
         };
         image.src = url;

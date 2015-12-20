@@ -25,10 +25,10 @@
           "js": [
               "vendor/jquery-2.1.4.min.js",
               "vendor/raphael-min.js",
-              "common/notecloud.js",
-              "common/pageshot.js",
+              "common/notecloudUtil.js",
+              "common/pageshotUtil.js",
               "content/note.js",
-              "content/pageshot.js",
+              //"content/pageshot.js",
               "content/contentScript.js"
           ],
           "css": ["content/css/main.css","content/css/stroke.css"]

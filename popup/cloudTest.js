@@ -6,7 +6,7 @@
     // page测试按钮监听
     $('#pageBtn').on('click', function(){
         console.debug('获取page对象...');
-        notecloud.page(url, function(page){
+        notecloudUtil.page(url, function(page){
             console.debug('得到对象:%s', JSON.stringify(page));
 
             console.debug('修改page对象...');
@@ -26,9 +26,9 @@
             };
 
             console.debug('同步page对象...');
-            notecloud.sync(page, function(){
+            notecloudUtil.sync(page, function(){
                 console.debug('同步完成');
-                notecloud.page(url, function(page){
+                notecloudUtil.page(url, function(page){
                     console.debug('同步后对象:%s', JSON.stringify(page));
                 });
             });

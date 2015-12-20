@@ -41,22 +41,4 @@ var NoteFile;
             this[key] = other[key];
         }
     };
-
-    NoteFile.prototype.__autoSync__ = function(sync, interval){
-        // 对间隔时间有限制
-        if(!interval || isNaN(interval) || interval < 15000) return;
-
-        var self = this;
-        setInterval(function(){
-            if(self.__isSyncing__) return;
-            self.__isSyncing__ = true;
-
-            sync(self, function(err){
-                self.__isSyncing__ = false;
-
-                if(err) return console.error(err);
-                console.debug("已自动同步");
-            });
-        }, interval);
-    };
 }();

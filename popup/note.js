@@ -20,10 +20,10 @@ $('#save').click(function(){
            var pathArray=response.pathArray;
            console.debug(url);
            console.debug(pathArray);
-           notecloud.page(url, function(page){
+           notecloudUtil.page(url, function(page){
                page.pathArray = pathArray;
-               notecloud.sync(page,function(){
-                   notecloud.page(url, function(page){
+               notecloudUtil.sync(page,function(){
+                   notecloudUtil.page(url, function(page){
                        console.debug('同步后对象:%s', JSON.stringify(page));
                    });
                });

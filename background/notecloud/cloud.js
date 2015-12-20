@@ -99,7 +99,6 @@ var cloud = {
                     var file = new NoteFile();
                     file.__fileId__ = fileId;
                     file.__merge__(fileData);
-                    file.__autoSync__(sync, autoSyncInterval);
 
                     callback(null, file);
                 });
@@ -126,7 +125,6 @@ var cloud = {
         file.__localId__ = localId;
         file.__fileName__ = fileName;
         file.__merge__(localFile);
-        file.__autoSync__(sync, autoSyncInterval);
 
         callback(null, file);
     }
