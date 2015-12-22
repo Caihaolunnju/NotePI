@@ -23,7 +23,11 @@ var intervalMap = {};
 var syncStatusMap = {};
 
 !function(){
-    // 从google drive端获取页面对象
+    /**
+     * 从云端获取指定url对应的页面数据
+     * @param  {string}   url      url地址
+     * @param  {Function} callback callback(page)
+     */
     notecloudUtil.page = function(url, callback){
         chrome.runtime.sendMessage({
             'command': 'page',
@@ -34,7 +38,11 @@ var syncStatusMap = {};
         });
     };
 
-    // 从google drive端获取截图对象
+    /**
+     * 从云端获取指定url对应的页面数据
+     * @param  {string}   url      url地址
+     * @param  {Function} callback callback(page)
+     */
     notecloudUtil.pageshot = function(url, callback){
         chrome.runtime.sendMessage({
             'command': 'pageshot',
@@ -45,7 +53,11 @@ var syncStatusMap = {};
         });
     };
 
-    // 将本地修改过的文件对象(page或pageshot)同步到google drive上
+    /**
+     * 将本地的文件对象(page或pageshot)同步到云端
+     * @param  {NoteFile}   file   文件对象
+     * @param  {Function} callback callback()
+     */
     notecloudUtil.sync =  function(file, callback){
         var id = file.__localId__ || file.__fileId__;
         console.assert(id);
