@@ -5,15 +5,16 @@
 var url= window.location.href;
 var width = document.body.scrollWidth;
 var height = document.body.scrollHeight;
-var $canvas = $("<div id='notepi-canvas'>");
+var canvas = $("<div id='notepi-canvas' >");
 
-$canvas.height(height);
-$canvas.width(width);
-$("body").prepend($canvas);
+canvas.height(height);
+canvas.width(1000);
+canvas.css("marginLeft",(width-1000)/2.0);
+$("body").prepend(canvas);
 
 var mousedown = false,lastX, lastY, path, pathString;
 var brush=false,eraser=false;
-var paper = new Raphael($canvas[0],width,height);
+var paper = new Raphael(canvas[0],width,height);
 var pathSet = paper.set();
 
 // 使用noteInit函数包装的原因请参考contentScript.js
@@ -31,10 +32,10 @@ function noteInit(done){
 	});
 }
 
-$canvas.mousedown(function (e) {
+canvas.mousedown(function (e) {
 	mousedown = true;
 	if(brush){
-		$canvas.addClass("drawing");
+		canvas.addClass("drawing");
 	    var x = e.offsetX,
 	        y = e.offsetY;
 
@@ -45,15 +46,15 @@ $canvas.mousedown(function (e) {
 	}
 });
 
-$canvas.mouseup(function () {
+canvas.mouseup(function () {
 	mousedown = false;
 	if(brush){
-		$canvas.removeClass("drawing");
+		canvas.removeClass("drawing");
 	    pathSet.push(path);
 	}
 });
 
-$canvas.mousemove(function (e) {
+canvas.mousemove(function (e) {
 	if (!mousedown || !brush) {
 	    return;
 	}
@@ -80,14 +81,14 @@ chrome.runtime.onMessage.addListener(
 
 //画刷的动作
 function brushAction(){
-	$canvas.css("pointer-events","auto");
+	canvas.css("pointer-events","auto");
 	brush=true;
     eraser=false;
 }
 
 //橡皮擦的动作
 function eraserAction(){
-	$canvas.css("pointer-events","auto");
+	canvas.css("pointer-events","auto");
 	eraser=true;
     brush=false;
 
@@ -105,7 +106,7 @@ function eraserAction(){
 function saveAction(sendResponse){
 	eraser=false;
 	brush=false;
-	$canvas.css("pointer-events","none");
+	canvas.css("pointer-events","none");
 	var pathArray = Set2Array(pathSet);
 	sendResponse({"url":url,"pathArray":pathArray});
 }
