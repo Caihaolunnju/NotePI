@@ -32,17 +32,13 @@ function pageshotInit(done){
     notecloudUtil.pageshot(currentURL, function(pageshot){
         // 保存全局的pageshot对象
         window.pageshot = pageshot;
+        recoverScene(pageshot);
 
         // 来自popup的pageshot相关消息处理
         chrome.runtime.onMessage.addListener(function(msg){
             if(msg.command === 'tabSavePageshot'){
                 console.debug("保存截图...");
-                var currentURL = window.location.href;
-
-                pageshot.data = pageCanvas.toDataURL();
-                notecloudUtil.sync(pageshot, function(){
-                    console.debug('截图同步完成');
-                });
+                tabSavePageshot();
             }
 
             if(msg.command === 'tabOpenPageshot'){
@@ -52,6 +48,7 @@ function pageshotInit(done){
             }
         });
 
+        // 网页滚动事件监听
         $(window).scroll(function(){
             if(begins && !cooling){
                 cooling = true;
@@ -80,64 +77,50 @@ function pageshotInit(done){
     });
 }
 
+// 标签页保存整个网页截图操作
+function tabSavePageshot(){
+    var currentURL = window.location.href;
+
+    // 将canvas数据和span数据写入pageshot对象等待同步
+    pageshot.data = pageCanvas.toDataURL();
+    pageshot.spans = spans;
+
+    notecloudUtil.sync(pageshot, function(){
+        console.debug('截图同步完成');
+    });
+}
+
+// 使用获取的pageshot对象恢复场景
+// 从而可以继续进行截图
+function recoverScene(pageshot){
+    // 如果是一个全新的pageshot则直接返回，不用恢复
+    if(!pageshot.data || !pageshot.spans) return;
+
+    console.debug('检测到已存在截图数据，进行场景恢复...');
+    // 恢复span数据
+    var storedSpans = pageshot.spans;
+    for (var i = 0; i <storedSpans.length; i++) {
+        var storedSpan = storedSpans[i];
+        var span = new Span(storedSpan.start, storedSpan.end);
+        spans.push(span);
+    }
+
+    // 恢复canvas
+    var url = pageshot.data;
+    var image = new Image();
+    image.onload = function() {
+        pageCtx.drawImage(image, 0, 0);
+        console.debug('场景恢复完成');
+    };
+    image.src = url;
+}
+
 // 有效的滚动操作触发
 function validScroll(){
     var pageOffset = $(document).scrollTop();
     var visibleHeight = $(window).height();
     scroll(pageOffset, pageOffset + visibleHeight);
 }
-
-// Span对象构造函数
-function Span(start, end){
-    console.assert(start < end);
-
-    this.start = start;
-    this.end = end;
-    this.length = end - start;
-};
-
-// 判断指定坐标是否在span中
-Span.prototype.contains = function(x){
-    return this.start <= x && x <= this.end;
-};
-
-// 两个span对象合并
-// 差值部分构成一个新的span对象返回
-// 注意在 r1.merge(r2) 中要求r1在r2前面
-Span.prototype.merge = function(other){
-    console.assert(this.end <= other.start)
-
-    var diff = null;
-    if(this.end < other.start){
-        diff = new Span(this.end, other.start);
-    }
-
-    // 将本span对象改变为合并后的对象
-    // 同时意味着other对象无效，应该删除
-    this.end = other.end;
-    this.length = this.end - this.start;
-    return diff;
-};
-
-// 将span延伸到x坐标处
-// 注意可以向后延伸也可以向前延伸
-// 差值部分构成一个新的span对象返回
-Span.prototype.extend = function(x){
-    var diff = null;
-    if( this.end < x ){
-        diff = new Span(this.end, x);
-        this.end = x;
-        this.length = this.end - this.start;
-        return diff;
-    }else if( x < this.start ){
-        diff = new Span(x, this.start);
-        this.start = x;
-        this.length = this.end - this.start;
-        return diff;
-    }
-
-    return null;
-};
 
 // 滚动后触发的处理函数
 // x1,x2为可视区域的上下坐标
@@ -218,3 +201,55 @@ function screenshot(callback){
         callback(screenshotUrl);
     });
 }
+
+// Span对象构造函数
+function Span(start, end){
+    console.assert(start < end);
+
+    this.start = start;
+    this.end = end;
+    this.length = end - start;
+};
+
+// 判断指定坐标是否在span中
+Span.prototype.contains = function(x){
+    return this.start <= x && x <= this.end;
+};
+
+// 两个span对象合并
+// 差值部分构成一个新的span对象返回
+// 注意在 r1.merge(r2) 中要求r1在r2前面
+Span.prototype.merge = function(other){
+    console.assert(this.end <= other.start)
+
+    var diff = null;
+    if(this.end < other.start){
+        diff = new Span(this.end, other.start);
+    }
+
+    // 将本span对象改变为合并后的对象
+    // 同时意味着other对象无效，应该删除
+    this.end = other.end;
+    this.length = this.end - this.start;
+    return diff;
+};
+
+// 将span延伸到x坐标处
+// 注意可以向后延伸也可以向前延伸
+// 差值部分构成一个新的span对象返回
+Span.prototype.extend = function(x){
+    var diff = null;
+    if( this.end < x ){
+        diff = new Span(this.end, x);
+        this.end = x;
+        this.length = this.end - this.start;
+        return diff;
+    }else if( x < this.start ){
+        diff = new Span(x, this.start);
+        this.start = x;
+        this.length = this.end - this.start;
+        return diff;
+    }
+
+    return null;
+};
