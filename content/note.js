@@ -7,6 +7,21 @@ var width = document.body.scrollWidth;
 var height = document.body.scrollHeight;
 var canvas = $("<div id='notepi-canvas' >");
 
+//笔记扫过的dom
+var domBound = {
+	_array : [],
+
+	addPoint : function(x,y){
+		var dom = document.elementFromPoint(x,y);
+		if(-1 == this._array.indexOf(dom)){
+			this._array.push(dom);
+		}
+	},
+	clear : function(){
+		this._array.length = 0;
+	}
+};
+
 canvas.height(height);
 canvas.width(1000);
 canvas.css("marginLeft",(width-1000)/2.0);
@@ -34,6 +49,8 @@ canvas.mousedown(function (e) {
 	    var x = e.offsetX,
 	        y = e.offsetY;
 
+	    domBound.addPoint(e.clientX,e.clientY);
+
 	    pathString = 'M' + x + ' ' + y + 'l0 0';
 	    path = paper.path(pathString);
 	    lastX = x;
@@ -44,6 +61,10 @@ canvas.mousedown(function (e) {
 canvas.mouseup(function () {
 	mousedown = false;
 	if(brush){
+
+		console.debug(domBound._array);
+		domBound.clear();
+
 		canvas.removeClass("drawing");
 	    pathSet.push(path);
 	}
@@ -54,6 +75,8 @@ canvas.mousemove(function (e) {
 	    return;
 	}
 	var x = e.offsetX, y = e.offsetY;
+
+	domBound.addPoint(e.clientX,e.clientY);
 
 	pathString += 'l' + (x - lastX) + ' ' + (y - lastY);
 	path.attr('path', pathString);
