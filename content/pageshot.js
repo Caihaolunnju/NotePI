@@ -6,8 +6,10 @@
 var pageCanvas = document.createElement('canvas');
 pageCanvas.height = $(document).height();
 pageCanvas.width = $(document).width();
-
 var pageCtx = pageCanvas.getContext('2d');
+
+// 临时画布，防止临时canvas被回收而设置在这里的全局变量
+var tmpCanvas;
 
 // 存放所有span的数组
 var spans = [];
@@ -19,100 +21,89 @@ var coolTimeout = null; // 冷却机制使用的timeout对象
 var FIRST_SCREENSHOT_TIME = 4000; // 页面加载后触发第一次截屏的等待时间
 var SCREENSHOT_INTERVAL = 2000; // 每次截屏的时间间隔
 
-// 页面截图存储对象
-// 可能会定期进行自动同步
-var pageshot = null;
-
 // 本页面的url
 var currentURL = window.location.href;
 
-function pageshotInit(done){
-    // 首先获取页面对应的pageshot对象
-    // 然后才能做其他任何动作
-    notecloudUtil.pageshot(currentURL, function(pageshot){
-        // 保存全局的pageshot对象
-        window.pageshot = pageshot;
-        recoverScene(pageshot);
+// 来自popup的pageshot相关消息处理
+chrome.runtime.onMessage.addListener(function(msg){
+    if(msg.command === 'tabSavePageshot'){
+        console.debug("保存截图...");
+        tabSavePageshot();
+    }
 
-        // 来自popup的pageshot相关消息处理
-        chrome.runtime.onMessage.addListener(function(msg){
-            if(msg.command === 'tabSavePageshot'){
-                console.debug("保存截图...");
-                tabSavePageshot();
-            }
+    if(msg.command === 'tabOpenPageshot'){
+        console.debug("打开截图...");
+        var currentURL = window.location.href;
+        pageshotUtil.openPageshot(currentURL);
+    }
+});
 
-            if(msg.command === 'tabOpenPageshot'){
-                console.debug("打开截图...");
-                var currentURL = window.location.href;
-                pageshotUtil.openPageshot(currentURL);
-            }
-        });
+// 网页滚动事件监听
+$(window).scroll(function(){
+    if(begins && !cooling){
+        cooling = true;
+        countingDown();
+    }else if(begins && cooling){
+        // 如果在冷却时间又发生了滚动事件则重新倒计时
+        clearTimeout(coolTimeout);
+        countingDown();
+    }
 
-        // 网页滚动事件监听
-        $(window).scroll(function(){
-            if(begins && !cooling){
-                cooling = true;
-                countingDown();
-            }else if(begins && cooling){
-                // 如果在冷却时间又发生了滚动事件则重新倒计时
-                clearTimeout(coolTimeout);
-                countingDown();
-            }
-
-            function countingDown(){
-                coolTimeout = setTimeout(function(){
-                    cooling = false;
-                    validScroll();
-                }, SCREENSHOT_INTERVAL);
-            }
-        });
-
-        // 先行触发一次
-        setTimeout(function(){
-            begins = true;
+    function countingDown(){
+        coolTimeout = setTimeout(function(){
+            cooling = false;
             validScroll();
-        }, FIRST_SCREENSHOT_TIME);
+        }, SCREENSHOT_INTERVAL);
+    }
+});
 
-        done();
-    });
-}
+// 先行触发一次
+setTimeout(function(){
+    begins = true;
+    validScroll();
+}, FIRST_SCREENSHOT_TIME);
 
 // 标签页保存整个网页截图操作
 function tabSavePageshot(){
-    var currentURL = window.location.href;
+    // 先获取上一次的截图数据
+    notecloudUtil.pageshot(currentURL, function(pageshot){
+        var lastDataURL = pageshot.data;
+        // 这一次的截图数据
+        var currentDataURL = pageCanvas.toDataURL();
+        // 合并两次截图数据
+        mergePageshot(lastDataURL, currentDataURL, function(dataURL){
+            // 使用合并后新的截图数据并同步
+            pageshot.data = dataURL;
 
-    // 将canvas数据和span数据写入pageshot对象等待同步
-    pageshot.data = pageCanvas.toDataURL();
-    pageshot.spans = spans;
-
-    notecloudUtil.sync(pageshot, function(){
-        console.debug('截图同步完成');
+            notecloudUtil.sync(pageshot, function(){
+                console.debug('截图同步完成');
+            });
+        });
     });
 }
 
-// 使用获取的pageshot对象恢复场景
-// 从而可以继续进行截图
-function recoverScene(pageshot){
-    // 如果是一个全新的pageshot则直接返回，不用恢复
-    if(!pageshot.data || !pageshot.spans) return;
+// 合并两张截图数据，返回合并后的截图的dataURL
+function mergePageshot(lastDataURL, currentDataURL, callback){
+    // 如果原来没有数据，那么就直接返回当前的值，没什么好合并的了
+    if(!lastDataURL) return callback(currentDataURL);
 
-    console.debug('检测到已存在截图数据，进行场景恢复...');
-    // 恢复span数据
-    var storedSpans = pageshot.spans;
-    for (var i = 0; i <storedSpans.length; i++) {
-        var storedSpan = storedSpans[i];
-        var span = new Span(storedSpan.start, storedSpan.end);
-        spans.push(span);
-    }
+    // 临时canvas,和pageCanvas一样大
+    var tmpCanvas = document.createElement('canvas');
+    tmpCanvas.height = pageCanvas.height;
+    tmpCanvas.width = pageCanvas.width;
+    var ctx = tmpCanvas.getContext('2d');
 
-    // 恢复canvas
-    var url = pageshot.data;
+    // 临时image
     var image = new Image();
-    image.onload = function() {
-        pageCtx.drawImage(image, 0, 0);
-        console.debug('场景恢复完成');
+    image.onload = function(){
+        ctx.drawImage(image, 0, 0);
+        // 当前图片的src已经是currentDataURL了，说明两张图都画完了，返回
+        if(image.src === currentDataURL){
+            return callback(tmpCanvas.toDataURL());
+        }
+        image.src = currentDataURL;
     };
-    image.src = url;
+    image.src = lastDataURL;
 }
 
 // 有效的滚动操作触发
@@ -186,7 +177,6 @@ function emitNewSpan(x1, x2, span){
             var dHeight = sHeight / sWidth * dWidth;
 
             pageCtx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-            pageshot.data = pageCanvas.toDataURL();
             console.debug("截图已更新: %s in [%i,%i]", JSON.stringify(span), x1, x2);
         };
         image.src = url;
@@ -195,11 +185,17 @@ function emitNewSpan(x1, x2, span){
 
 // 通知background对可视区域进行截图
 function screenshot(callback){
-    chrome.runtime.sendMessage({
-        "command": "screenshot"
-    }, function(screenshotUrl){
-        callback(screenshotUrl);
-    });
+    $('#notepi-canvas').hide();
+    // 延时的原因是。。如果不延时，hide之后立刻截图还是会把笔记截进来的
+    setTimeout(function(){
+        chrome.runtime.sendMessage({
+            "command": "screenshot"
+        }, function(screenshotUrl){
+            $('#notepi-canvas').show();
+
+            callback(screenshotUrl);
+        });
+    }, 300);
 }
 
 // Span对象构造函数

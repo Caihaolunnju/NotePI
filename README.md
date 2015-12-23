@@ -18,26 +18,8 @@
 
 ------
 
-已将SVG编辑器独立了出来，暂时命名为note.js，如果有必要请自行修改。
-另外，content文件夹下的note.js和pageshot.js由于有存储内容获取的动作，可能会涉及到云端文件夹的创建。为了避免冲突，在contentScript.js中强制对其初始化进行了串行处理。不知道有没有更优雅的办法。
-
-------
-
 如果需要临时关闭某些功能，可以在manifest.json中将功能对应的脚本注释掉（比如想关闭截图功能，可以注释掉content_scripts > js > "content/pageshot.js"）。
 有些IDE或者编辑器可能会报错，因为JSON标准里是不允许有注释的。不过只要是合法的js语句就没问题。
-
-
-### 2015-12-16 去requirejs化重构
-
-由于以下原因，建议不再使用require.js:
-- 由于资源文件都在本地，因此使用require.js的异步加载意义不大
-- contentScript中使用require.js似乎存在着一些问题（要加载一个本地资源却会去请求网站本身的资源）
-- 一些较为复杂的部分（如notecloud部分）加载的时候路径配置较为繁琐
-- require.js本身也具有一定的复杂性
-
-项目本身还是需要保持模块化的，因此建议使用以下方案：
-- 新的功能写在js文件里面以后，将这个文件注册到manifest.json的对应位置中，比如background.scripts或者content_scripts.js（但是popup相关的脚本似乎只能注册到popup.html上面？）
-- 由于所有加载的模块都共用一个命名空间，因此在自己编写的模块中请注意尽量避免污染全局变量（可参考background/notecloud/cloud.js实现类似命名空间的效果）
 
 # 目录说明
 
