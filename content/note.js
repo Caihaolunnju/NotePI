@@ -23,8 +23,8 @@ var domBound = {
 };
 
 canvas.height(height);
-canvas.width(1000);
-canvas.css("marginLeft",(width-1000)/2.0);
+canvas.width(width);
+//canvas.css("marginLeft",(width-1000)/2.0);
 $("body").prepend(canvas);
 
 var mousedown = false,lastX, lastY, path, pathString;
