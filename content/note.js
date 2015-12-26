@@ -6,6 +6,20 @@ var url= window.location.href;
 var width = document.body.scrollWidth;
 var height = document.body.scrollHeight;
 var canvas = $("<div id='notepi-canvas' >");
+$("body").prepend(canvas);
+
+var paper = new Raphael(canvas[0],width,height);
+var pathSet = paper.set();
+
+var mousedown = false,lastX, lastY, path, pathString;
+var brush=false,eraser=false;
+var idCounter=0; //对path元素ID进行编号的计数器
+
+//存储单元，记录的是一笔的信息
+var pathInfo = {
+	id : 0,	//笔迹的ID
+	pathArray : []	//笔迹的path中d属性的字符串
+};
 
 //笔记扫过的dom
 var domBound = {
@@ -22,27 +36,19 @@ var domBound = {
 	}
 };
 
-canvas.height(height);
-canvas.width(width);
-//canvas.css("marginLeft",(width-1000)/2.0);
-$("body").prepend(canvas);
-
-var mousedown = false,lastX, lastY, path, pathString;
-var brush=false,eraser=false;
-var paper = new Raphael(canvas[0],width,height);
-var pathSet = paper.set();
-
 //先查看下该页面是否已经有笔记了
 notecloudUtil.page(url, function(response){
 	console.debug(response);
-	//如果先前已经有笔记，则将以前的饿笔记取出，在画布上重现
+	//如果先前已经有笔记，则将以前的笔记取出，在画布上重现，并且更新idCounter
 	if(typeof response != "undefined"){
-		if(typeof response.pathArray != "undefined")
-			Array2Set(response.pathArray);
+		if(typeof response.saveData != "undefined"){
+			pathSet = loadingNote(response.saveData, paper);
+			idCounter = getMaxId(response.saveData);
+		}
 	}
 });
 
-canvas.mousedown(function (e) {
+$('body').mousedown(function (e) {
 	mousedown = true;
 	if(brush){
 		canvas.addClass("drawing");
@@ -53,24 +59,25 @@ canvas.mousedown(function (e) {
 
 	    pathString = 'M' + x + ' ' + y + 'l0 0';
 	    path = paper.path(pathString);
+	    idCounter++;
+	    path.id = idCounter;
 	    lastX = x;
 	    lastY = y;
 	}
 });
 
-canvas.mouseup(function () {
+$('body').mouseup(function () {
 	mousedown = false;
 	if(brush){
-
 		console.debug(domBound._array);
 		domBound.clear();
 
 		canvas.removeClass("drawing");
-	    pathSet.push(path);
+	    pathSet.push(path); 
 	}
 });
 
-canvas.mousemove(function (e) {
+$('body').mousemove(function (e) {
 	if (!mousedown || !brush) {
 	    return;
 	}
@@ -91,9 +98,9 @@ chrome.runtime.onMessage.addListener(
 		if (request.cmd == "brush")
 		    brushAction();
 		else if(request.cmd == "eraser")
-		  	eraserAction();
+		  	eraserAction(pathSet);
 		else if(request.cmd == "save") {
-			saveAction(sendResponse);
+			saveAction(sendResponse,pathSet);
 		}
 });
 
@@ -105,7 +112,7 @@ function brushAction(){
 }
 
 //橡皮擦的动作
-function eraserAction(){
+function eraserAction(pathSet){
 	canvas.css("pointer-events","auto");
 	eraser=true;
     brush=false;
@@ -113,6 +120,9 @@ function eraserAction(){
     pathSet.forEach(function(element){
         element.mouseover(function(){
             if(eraser && mousedown){
+            	//获取擦除的笔迹的ID
+            	if(this.id != null)
+            		console.debug(this.id);
                 pathSet.exclude(this);
                 this.remove();
             }
@@ -121,31 +131,46 @@ function eraserAction(){
 }
 
 //保存的动作
-function saveAction(sendResponse){
+function saveAction(sendResponse, pathSet){
 	eraser=false;
 	brush=false;
 	canvas.css("pointer-events","none");
-	var pathArray = Set2Array(pathSet);
-	sendResponse({"url":url,"pathArray":pathArray});
+	sendResponse({"url":url,"saveData":pkg2SaveData(pathSet)});
 }
 
-//将path集合中的路径全都提出来组成数组
-function Set2Array(pathSet){
-	pathArray=[];
-	pathSet.forEach(function(element){
-		pathArray.push(element.attr('path'));
+//将目前画布中的笔迹信息打包放进saveData中
+function pkg2SaveData(pathSet){
+	var saveData = [];
+	pathSet.forEach(function(path){
+		var pathInfo = {};
+		pathInfo.pathArray = path.attr('path');
+		pathInfo.id = path.id;
+		saveData.push(pathInfo);
 	});
-	return pathArray;
+	return saveData;
 }
 
-//将含有路径的字符串数组组成path集合,并在画布中显示
-function Array2Set(pathArray){
-	pathArray.forEach(function (elements){
+//将之前保存的笔迹在画布中重新显示,返回加载之后的笔迹集合
+function loadingNote(saveData,paper){
+	var pathSet = paper.set();
+	saveData.forEach(function (pathInfo){
 		pathstring = "";
-		elements.forEach(function (element){
+		pathInfo.pathArray.forEach(function (element){
 			pathstring += element;
 		});
-		path = paper.path(pathstring);
+		var path = paper.path(pathstring);
+		path.id = pathInfo.id;
 		pathSet.push(path);
 	});
+	return pathSet;
+}
+
+//获取之前保存的笔迹中ID最大值，以便之后对新的笔迹进行编号
+function getMaxId(saveData){
+	var id = 0;
+	saveData.forEach(function(pathInfo){
+		if(pathInfo.id > id)
+			id = pathInfo.id;
+	});
+	return id;
 }
