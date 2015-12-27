@@ -1,6 +1,9 @@
 /*
  * SVG编辑器功能
  */
+// 对外暴露的note功能接口的对象
+var noteAPI = {};
+
 define(function(done){
 	//设置svg画布
 	var url= window.location.href;
@@ -48,7 +51,7 @@ define(function(done){
 			}
 		}
 
-		// 初始化完成
+		// 初始化完成，不调用这个传入的方法会导致后续的模块没有机会初始化
 		done();
 	});
 
@@ -177,5 +180,25 @@ define(function(done){
 				id = pathInfo.id;
 		});
 		return id;
+	}
+
+	////////// 以下是对外提供的接口 //////////////
+	var modified = true;
+	$('body').mousedown(function (e) {
+		modified = true;
+	});
+
+	// 返回当前笔记的所有打包数据
+	noteAPI.info = function(){
+		if(!modified) return null;
+
+		modified = false;
+		return pkg2SaveData(pathSet);
+	};
+
+	// 使用打包数据重画所有笔记
+	noteAPI.restore = function(noteInfo){
+		pathSet = loadingNote(noteInfo, paper);
+		idCounter = getMaxId(noteInfo);
 	}
 });

@@ -12,11 +12,13 @@
       * 打开指定url的截图页面
       * @param  {string} url 页面的url
       */
-     pageshotUtil.openPageshot = function(url){
+     pageshotUtil.openPageshot = function(url, callback){
          // 请求后台打开截图服务
          chrome.runtime.sendMessage({
              'command': 'openPageshot',
              'data': url
+         }, function(tabId){
+             if(callback) callback(tabId);
          });
-     }
+     };
  }();

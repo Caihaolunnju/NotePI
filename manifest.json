@@ -30,6 +30,7 @@
               "content/init.js",
               "content/note.js",
               "content/pageshot.js",
+              "content/shadow.js",
               "content/contentScript.js"
           ],
           "css": ["content/css/main.css","content/css/stroke.css"]

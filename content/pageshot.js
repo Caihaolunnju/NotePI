@@ -1,6 +1,11 @@
 /**
  * 截图功能模块
  */
+var pageshotAPI = {
+    // 打开的截图网页tabId
+    'pageshotTabId': null
+};
+
 define(function(done){
     // 绘制整个网页截图使用的canvas
     var pageCanvas = document.createElement('canvas');
@@ -25,15 +30,15 @@ define(function(done){
     var currentURL = window.location.href;
 
     // 截图文件对象
-    var lastPageshot = null;
+    var pageshot = null;
 
     // 获取上一次截图的信息，如果有则打开截图
-    notecloudUtil.pageshot(currentURL, function(pageshot){
-        window.pageshot = pageshot;
+    notecloudUtil.pageshot(currentURL, function(ps){
+        pageshot = ps;
         // 如果有数据，则打开
         if(pageshot.data){
             console.debug('存在上次保存的截图，自动打开...')
-            pageshotUtil.openPageshot(currentURL);
+            openPageshot(currentURL);
         }
 
         // 来自popup的pageshot相关消息处理
@@ -47,7 +52,7 @@ define(function(done){
             if(msg.command === 'tabOpenPageshot'){
                 console.debug("打开截图...");
                 var currentURL = window.location.href;
-                pageshotUtil.openPageshot(currentURL);
+                openPageshot(currentURL);
             }
         });
 
@@ -93,6 +98,15 @@ define(function(done){
             notecloudUtil.sync(pageshot, function(){
                 console.debug('截图同步完成');
             });
+        });
+    }
+
+    // 打开截图页面
+    function openPageshot(url){
+        pageshotUtil.openPageshot(url, function(tabId){
+            // 顺便捕获打开标签页的id，发送消息的时候有用
+            console.debug("打开的截图标签页id:" + tabId);
+            pageshotAPI.pageshotTabId = tabId;
         });
     }
 

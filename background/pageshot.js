@@ -16,7 +16,11 @@
         // 打开截图服务
         if(msg.command === 'openPageshot'){
             var dataURL = msg.data;
-            openPageshot(dataURL);
+            openPageshot(dataURL, function(tabId){
+                sendResponse(tabId);
+            });
+
+            return true;
         }
     });
 
@@ -28,7 +32,7 @@
     }
 
     // 开启新标签页打开截图内容
-    function openPageshot(url){
+    function openPageshot(url, callback){
         // 获取网页截图对象
         cloud.file(url, PAGESHOT_DATA_FILE, function(err, pageshot){
             if(err) return console.error(err);
@@ -46,6 +50,8 @@
                             'dataURL': dataURL
                         }
                     });
+
+                    callback(tab.id);
                 }, 1000);
             });
         });
