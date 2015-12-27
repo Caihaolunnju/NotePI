@@ -27,6 +27,7 @@
               "vendor/raphael-min.js",
               "common/notecloudUtil.js",
               "common/pageshotUtil.js",
+              "content/init.js",
               "content/note.js",
               "content/pageshot.js",
               "content/contentScript.js"

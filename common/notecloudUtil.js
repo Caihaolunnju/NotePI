@@ -33,7 +33,7 @@ var syncStatusMap = {};
             'command': 'page',
             'data': url
         }, function(page){
-            setupAutpSync(page);
+            setupAutoSync(page);
             callback(page);
         });
     };
@@ -48,7 +48,7 @@ var syncStatusMap = {};
             'command': 'pageshot',
             'data': url
         }, function(pageshot){
-            setupAutpSync(pageshot);
+            setupAutoSync(pageshot);
             callback(pageshot);
         });
     };
@@ -78,7 +78,7 @@ var syncStatusMap = {};
 }();
 
 // 对文件对象设置自动同步
-function setupAutpSync(file){
+function setupAutoSync(file){
     if(!AUTO_SYNC) return;
 
     var id = file.__pageId__ || file.__fileId__;

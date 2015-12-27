@@ -8,3 +8,5 @@ chrome.runtime.onMessage.addListener(function(msg){
         pic.src = dataURL;
     }
 });
+
+console.log(chrome.identity.getAuthToken);

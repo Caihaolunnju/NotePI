@@ -1,7 +1,7 @@
 /**
  * 截图功能模块
  */
-!function(){
+define(function(done){
     // 绘制整个网页截图使用的canvas
     var pageCanvas = document.createElement('canvas');
     pageCanvas.height = $(document).height();
@@ -24,18 +24,34 @@
     // 本页面的url
     var currentURL = window.location.href;
 
-    // 来自popup的pageshot相关消息处理
-    chrome.runtime.onMessage.addListener(function(msg){
-        if(msg.command === 'tabSavePageshot'){
-            console.debug("保存截图...");
-            tabSavePageshot();
-        }
+    // 截图文件对象
+    var lastPageshot = null;
 
-        if(msg.command === 'tabOpenPageshot'){
-            console.debug("打开截图...");
-            var currentURL = window.location.href;
+    // 获取上一次截图的信息，如果有则打开截图
+    notecloudUtil.pageshot(currentURL, function(pageshot){
+        window.pageshot = pageshot;
+        // 如果有数据，则打开
+        if(pageshot.data){
+            console.debug('存在上次保存的截图，自动打开...')
             pageshotUtil.openPageshot(currentURL);
         }
+
+        // 来自popup的pageshot相关消息处理
+        // 只有在获取了上次截图信息后才允许保存或打开截图
+        chrome.runtime.onMessage.addListener(function(msg){
+            if(msg.command === 'tabSavePageshot'){
+                console.debug("保存截图...");
+                tabSavePageshot();
+            }
+
+            if(msg.command === 'tabOpenPageshot'){
+                console.debug("打开截图...");
+                var currentURL = window.location.href;
+                pageshotUtil.openPageshot(currentURL);
+            }
+        });
+
+        done();
     });
 
     // 网页滚动事件监听
@@ -65,19 +81,17 @@
 
     // 标签页保存整个网页截图操作
     function tabSavePageshot(){
-        // 先获取上一次的截图数据
-        notecloudUtil.pageshot(currentURL, function(pageshot){
-            var lastDataURL = pageshot.data;
-            // 这一次的截图数据
-            var currentDataURL = pageCanvas.toDataURL();
-            // 合并两次截图数据
-            mergePageshot(lastDataURL, currentDataURL, function(dataURL){
-                // 使用合并后新的截图数据并同步
-                pageshot.data = dataURL;
+        // 上一次截图的数据
+        var lastDataURL = pageshot.data;
+        // 这一次的截图数据
+        var currentDataURL = pageCanvas.toDataURL();
+        // 合并两次截图数据
+        mergePageshot(lastDataURL, currentDataURL, function(dataURL){
+            // 使用合并后新的截图数据并同步
+            pageshot.data = dataURL;
 
-                notecloudUtil.sync(pageshot, function(){
-                    console.debug('截图同步完成');
-                });
+            notecloudUtil.sync(pageshot, function(){
+                console.debug('截图同步完成');
             });
         });
     }
@@ -249,4 +263,4 @@
 
         return null;
     };
-}();
+});
