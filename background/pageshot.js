@@ -38,21 +38,26 @@
             if(err) return console.error(err);
             var dataURL = pageshot.data;
 
-            // 调用相关模块来显示截图
-            chrome.tabs.create({
-                'url': chrome.extension.getURL('content/pageshot/display.html')
-            }, function(tab){
-                // 延时1秒再发送，否则会收不到
-                setTimeout(function(){
-                    chrome.runtime.sendMessage({
-                        'command': 'displayDataURL',
-                        'data': {
-                            'dataURL': dataURL
-                        }
-                    });
+            // 获取消息源tab
+            chrome.tabs.query({currentWindow: true, active : true},function(tabArray){
+                var srcTab = tabArray[0];
+                // 调用相关模块来显示截图
+                chrome.tabs.create({
+                    // 在这里偷偷的把源tab的tabId通过url参数传给了截图页面
+                    'url': chrome.extension.getURL('content/pageshot/display.html')+'?src='+srcTab.id
+                }, function(tab){
+                    // 延时1秒再发送，否则会收不到
+                    setTimeout(function(){
+                        chrome.runtime.sendMessage({
+                            'command': 'displayDataURL',
+                            'data': {
+                                'dataURL': dataURL
+                            }
+                        });
 
-                    callback(tab.id);
-                }, 1000);
+                        callback(tab.id);
+                    }, 1000);
+                });
             });
         });
     }

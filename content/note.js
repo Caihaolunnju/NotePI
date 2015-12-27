@@ -183,14 +183,15 @@ define(function(done){
 	}
 
 	////////// 以下是对外提供的接口 //////////////
-	var modified = true;
+	var modified = false;
 	$('body').mousedown(function (e) {
 		modified = true;
 	});
 
 	// 返回当前笔记的所有打包数据
-	noteAPI.info = function(){
-		if(!modified) return null;
+	noteAPI.info = function(/*强制取出信息*/force){
+		// 如果没修改过返回空
+		if(!modified && !force) return null;
 
 		modified = false;
 		return pkg2SaveData(pathSet);
