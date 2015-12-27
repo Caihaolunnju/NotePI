@@ -1,11 +1,6 @@
 /**
  * 截图功能模块
  */
-var pageshotAPI = {
-    // 打开的截图网页tabId
-    'pageshotTabId': null
-};
-
 define(function(done){
     // 绘制整个网页截图使用的canvas
     var pageCanvas = document.createElement('canvas');
@@ -103,11 +98,7 @@ define(function(done){
 
     // 打开截图页面
     function openPageshot(url){
-        pageshotUtil.openPageshot(url, function(tabId){
-            // 顺便捕获打开标签页的id，发送消息的时候有用
-            console.debug("打开的截图标签页id:" + tabId);
-            pageshotAPI.pageshotTabId = tabId;
-        });
+        pageshotUtil.openPageshot(url);
     }
 
     // 合并两张截图数据，返回合并后的截图的dataURL

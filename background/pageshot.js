@@ -16,8 +16,8 @@
         // 打开截图服务
         if(msg.command === 'openPageshot'){
             var dataURL = msg.data;
-            openPageshot(dataURL, function(tabId){
-                sendResponse(tabId);
+            openPageshot(dataURL, function(){
+                sendResponse();
             });
 
             return true;
@@ -48,6 +48,7 @@
                 }, function(tab){
                     // 延时1秒再发送，否则会收不到
                     setTimeout(function(){
+                        // 打开图片
                         chrome.runtime.sendMessage({
                             'command': 'displayDataURL',
                             'data': {
@@ -55,7 +56,16 @@
                             }
                         });
 
-                        callback(tab.id);
+                        // 通知源网页打开的截图页面tabId是多少
+                        // 同时也是告诉源网页截图页面打开了
+                        chrome.tabs.sendMessage(srcTab.id,{
+                            'command': 'pageshotCreated',
+                            'data':{
+                                'pageshotTabId': tab.id
+                            }
+                        });
+
+                        callback();
                     }, 1000);
                 });
             });

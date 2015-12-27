@@ -4,6 +4,21 @@
 // 源网页的tabId
 var srcTabId = Number(location.search.substring(1).match(/src=(\d+)/)[1]);
 
+// 监听截图上笔记的修改事件
+noteAPI.addModifyListener(function(){
+    var noteInfo = noteAPI.info();
+    if(!noteInfo) return;
+
+    // 向源网页发送重画消息
+    chrome.tabs.sendMessage(srcTabId, {
+        'command': 'shadowUpdate',
+        'data': {
+            'noteInfo': noteInfo
+        }
+    });
+});
+
+// 消息处理
 chrome.runtime.onMessage.addListener(function(msg){
     // 显示
     if(msg.command === 'displayDataURL'){
@@ -25,16 +40,3 @@ chrome.runtime.onMessage.addListener(function(msg){
         });
     }
 });
-
-setInterval(function(){
-    var noteInfo = noteAPI.info();
-    if(!noteInfo) return;
-
-    // 向源网页发送重画消息
-    chrome.tabs.sendMessage(srcTabId, {
-        'command': 'shadowUpdate',
-        'data': {
-            'noteInfo': noteInfo
-        }
-    });
-}, 2000); // 2秒发送一次

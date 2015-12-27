@@ -17,8 +17,8 @@
          chrome.runtime.sendMessage({
              'command': 'openPageshot',
              'data': url
-         }, function(tabId){
-             if(callback) callback(tabId);
+         }, function(){
+             if(callback) callback();
          });
      };
  }();

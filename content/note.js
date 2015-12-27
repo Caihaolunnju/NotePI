@@ -183,17 +183,17 @@ define(function(done){
 	}
 
 	////////// 以下是对外提供的接口 //////////////
-	var modified = false;
-	$('body').mousedown(function (e) {
-		modified = true;
+
+	var modifyListeners = [];
+	$('body').mouseup(function (e) {
+		// 依次调用各个监听者
+		modifyListeners.forEach(function(listener){
+			listener();
+		});
 	});
 
 	// 返回当前笔记的所有打包数据
-	noteAPI.info = function(/*强制取出信息*/force){
-		// 如果没修改过返回空
-		if(!modified && !force) return null;
-
-		modified = false;
+	noteAPI.info = function(force){
 		return pkg2SaveData(pathSet);
 	};
 
@@ -201,5 +201,9 @@ define(function(done){
 	noteAPI.restore = function(noteInfo){
 		pathSet = loadingNote(noteInfo, paper);
 		idCounter = getMaxId(noteInfo);
+	}
+
+	noteAPI.addModifyListener = function(listener){
+		modifyListeners.push(listener);
 	}
 });
