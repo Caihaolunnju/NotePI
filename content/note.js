@@ -23,7 +23,7 @@ define(function(done){
 	var pathInfo = {
 		id : 0,	//笔迹的ID
 		pathArray : [],	//笔迹的path中d属性的字符串
-		context : "" //笔迹扫过的上下文
+		context : null //笔迹扫过的上下文
 	};
 
 	//笔记扫过的dom
@@ -94,8 +94,8 @@ define(function(done){
 	$('body').mouseup(function () {
 		mousedown = false;
 		if(brush){
-			var context = domBound.getDomRange().toString().replace(/\s/g,"");
-			console.debug(context);
+			var context = domBound.getDomRange();
+			console.debug(context.toString().replace(/\s/g,""));
 			path.context = context;
 			domBound.clear();
 			canvas.removeClass("drawing");
