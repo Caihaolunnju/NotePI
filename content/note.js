@@ -27,16 +27,33 @@ define(function(done){
 
 	//笔记扫过的dom
 	var domBound = {
-		_array : [],
+		_minX : undefined,
+		_minY : undefined,
+		_maxX : undefined,
+		_maxY : undefined,
 
 		addPoint : function(x,y){
-			var dom = document.elementFromPoint(x,y);
-			if(-1 == this._array.indexOf(dom)){
-				this._array.push(dom);
-			}
+			if(this._minX==undefined || x<this._minX)this._minX=x;
+			if(this._minY==undefined || y<this._minY)this._minY=y;
+			if(this._maxX==undefined || x>this._maxX)this._maxX=x;
+			if(this._maxY==undefined || y>this._maxY)this._maxY=y;
 		},
 		clear : function(){
-			this._array.length = 0;
+			this._minX = undefined;
+			this._minY = undefined;
+			this._maxX = undefined;
+			this._maxY = undefined;
+		},
+		getDomRange : function(){
+			var prevCSS = canvas.css("pointer-events");
+			canvas.css("pointer-events","none");
+			var start = document.elementFromPoint(this._minX,this._minY);
+			var end = document.elementFromPoint(this._maxX,this._maxY);
+			canvas.css("pointer-events",prevCSS);
+			var range = document.createRange();
+			range.setStart(start,0);
+			range.setEnd(end,0);
+			return range;
 		}
 	};
 
@@ -76,11 +93,11 @@ define(function(done){
 	$('body').mouseup(function () {
 		mousedown = false;
 		if(brush){
-			console.debug(domBound._array);
+			console.debug(domBound.getDomRange().toString().replace(/\s/g,""));
 			domBound.clear();
-
 			canvas.removeClass("drawing");
 		    pathSet.push(path);
+
 		}
 	});
 
