@@ -55,6 +55,18 @@ define(function(done){
 			range.setStart(start,0);
 			range.setEnd(end,0);
 			return range;
+		},
+		check : function(bbox,preRange){
+			var prevCSS = canvas.css("pointer-events");
+			canvas.css("pointer-events","none");
+			var start = document.elementFromPoint(bbox.x,bbox.y);
+			var end = document.elementFromPoint(bbox.x2,bbox.y2);
+			canvas.css("pointer-events",prevCSS);
+			var curRange = document.createRange();
+			curRange.setStart(start,0);
+			curRange.setEnd(end,0);
+			var cur = curRange.toString().replace(/\s/g,"");
+			return cur == preRange;
 		}
 	};
 
@@ -94,8 +106,9 @@ define(function(done){
 	$('body').mouseup(function () {
 		mousedown = false;
 		if(brush){
-			var context = domBound.getDomRange();
-			console.debug(context.toString().replace(/\s/g,""));
+			var context = domBound.getDomRange().toString().replace(/\s/g,"");
+			console.debug("获取range");
+			console.debug(context);
 			path.context = context;
 			domBound.clear();
 			canvas.removeClass("drawing");
@@ -173,6 +186,8 @@ define(function(done){
 			pathInfo.pathArray = path.attr('path');
 			pathInfo.id = path.id;
 			pathInfo.context = path.context;
+			console.debug("存入range");
+			console.debug(pathInfo.context);
 			saveData.push(pathInfo);
 		});
 		return saveData;
@@ -181,15 +196,24 @@ define(function(done){
 	//将之前保存的笔迹在画布中重新显示,返回加载之后的笔迹集合
 	function loadingNote(saveData,paper){
 		var pathSet = paper.set();
-		saveData.forEach(function (pathInfo){
+		var sameCount = 0;
+		for(var i in saveData){
+			var pathInfo = saveData[i];
 			pathstring = "";
 			pathInfo.pathArray.forEach(function (element){
 				pathstring += element;
 			});
 			var path = paper.path(pathstring);
 			path.id = pathInfo.id;
+			path.context = pathInfo.context;
+			console.debug("取出range");
+			console.debug(pathInfo.context);
+			var same = domBound.check(path.getBBox(),pathInfo.context);
+			sameCount+=same?1:0;
 			pathSet.push(path);
-		});
+		}
+		var ratio = sameCount/saveData.length*100;
+		console.info("同步率："+ratio+"%.");
 		return pathSet;
 	}
 
