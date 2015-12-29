@@ -22,7 +22,8 @@ define(function(done){
 	//存储单元，记录的是一笔的信息
 	var pathInfo = {
 		id : 0,	//笔迹的ID
-		pathArray : []	//笔迹的path中d属性的字符串
+		pathArray : [],	//笔迹的path中d属性的字符串
+		context : "" //笔迹扫过的上下文
 	};
 
 	//笔记扫过的dom
@@ -93,7 +94,9 @@ define(function(done){
 	$('body').mouseup(function () {
 		mousedown = false;
 		if(brush){
-			console.debug(domBound.getDomRange().toString().replace(/\s/g,""));
+			var context = domBound.getDomRange().toString().replace(/\s/g,"");
+			console.debug(context);
+			path.context = context;
 			domBound.clear();
 			canvas.removeClass("drawing");
 		    pathSet.push(path);
@@ -169,6 +172,7 @@ define(function(done){
 			var pathInfo = {};
 			pathInfo.pathArray = path.attr('path');
 			pathInfo.id = path.id;
+			pathInfo.context = path.context;
 			saveData.push(pathInfo);
 		});
 		return saveData;
