@@ -19,11 +19,26 @@ define(function(done){
 	var brush=false,eraser=false;
 	var idCounter=0; //对path元素ID进行编号的计数器
 
-	//存储单元，记录的是一笔的信息
-	var pathInfo = {
-		id : 0,	//笔迹的ID
-		pathArray : [],	//笔迹的path中d属性的字符串
-		context : null //笔迹扫过的上下文
+	//笔迹存储单元，记录的是一笔的信息
+	var PathInfo = {
+		createNew : function(){
+			var pathInfo = {};
+			pathInfo.id=0; //笔迹的ID
+			pathInfo.pathArray = []; //笔迹的path中d属性的字符串
+			pathInfo.context = ""; //笔迹扫过的上下文
+			return pathInfo;
+		}
+	};
+
+	//传入后台的存储对象SaveData
+	var SaveData = {
+		creatNew : function(){
+			var saveData = {};
+			saveData.width = 0;
+			saveData.height = 0;
+			saveData.pathInfoArray = [];
+			return saveData;
+		}
 	};
 
 	//笔记扫过的dom
@@ -76,8 +91,11 @@ define(function(done){
 		//如果先前已经有笔记，则将以前的笔记取出，在画布上重现，并且更新idCounter
 		if(typeof response != "undefined"){
 			if(typeof response.saveData != "undefined"){
-				pathSet = loadingNote(response.saveData, paper);
-				idCounter = getMaxId(response.saveData);
+				var saveData = response.saveData;
+				console.debug(saveData.width);
+				console.debug(saveData.height);
+				pathSet = loadingNote(saveData, paper);
+				idCounter = getMaxId(saveData);
 			}
 		}
 
@@ -180,15 +198,17 @@ define(function(done){
 
 	//将目前画布中的笔迹信息打包放进saveData中
 	function pkg2SaveData(pathSet){
-		var saveData = [];
+		var saveData = SaveData.creatNew();
+		saveData.width = document.body.scrollWidth;
+		saveData.height = document.body.scrollHeight;
 		pathSet.forEach(function(path){
-			var pathInfo = {};
+			var pathInfo = PathInfo.createNew();
 			pathInfo.pathArray = path.attr('path');
 			pathInfo.id = path.id;
 			pathInfo.context = path.context;
 			console.debug("存入range");
 			console.debug(pathInfo.context);
-			saveData.push(pathInfo);
+			saveData.pathInfoArray.push(pathInfo);
 		});
 		return saveData;
 	}
@@ -197,8 +217,8 @@ define(function(done){
 	function loadingNote(saveData,paper){
 		var pathSet = paper.set();
 		var sameCount = 0;
-		for(var i in saveData){
-			var pathInfo = saveData[i];
+		for(var i in saveData.pathInfoArray){
+			var pathInfo = saveData.pathInfoArray[i];
 			pathstring = "";
 			pathInfo.pathArray.forEach(function (element){
 				pathstring += element;
@@ -220,7 +240,7 @@ define(function(done){
 	//获取之前保存的笔迹中ID最大值，以便之后对新的笔迹进行编号
 	function getMaxId(saveData){
 		var id = 0;
-		saveData.forEach(function(pathInfo){
+		saveData.pathInfoArray.forEach(function(pathInfo){
 			if(pathInfo.id > id)
 				id = pathInfo.id;
 		});
