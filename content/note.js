@@ -215,6 +215,7 @@ define(function(done){
 
 	//将之前保存的笔迹在画布中重新显示,返回加载之后的笔迹集合
 	function loadingNote(saveData,paper){
+		paper.clear();
 		var pathSet = paper.set();
 		var sameCount = 0;
 		for(var i in saveData.pathInfoArray){
