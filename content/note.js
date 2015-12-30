@@ -78,8 +78,11 @@ define(function(done){
 			var end = document.elementFromPoint(bbox.x2,bbox.y2);
 			canvas.css("pointer-events",prevCSS);
 			var curRange = document.createRange();
-			curRange.setStart(start,0);
-			curRange.setEnd(end,0);
+			// 因为会报错，因此这里先注释掉
+			// TypeError: Failed to execute 'setStart' on 'Range': parameter 1 is not of type 'Node'
+
+			// curRange.setStart(start,0);
+			// curRange.setEnd(end,0);
 			var cur = curRange.toString().replace(/\s/g,"");
 			return cur == preRange;
 		}
@@ -151,45 +154,57 @@ define(function(done){
 	});
 
 	//根据popup发出的消息进行回应
-	chrome.runtime.onMessage.addListener(
-		function(request, sender, sendResponse) {
-			if (request.cmd == "brush")
-			    brushAction();
-			else if(request.cmd == "eraser")
-			  	eraserAction(pathSet);
-			else if(request.cmd == "save") {
-				saveAction(pathSet);
-			}
+	chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+		if (request.cmd == "brush")
+		    toggleBrush();
+		else if(request.cmd == "eraser")
+		  	toggleEraser(pathSet);
+		else if(request.cmd == "save")
+			saveNote(pathSet);
+		else if(request.cmd == "buttonStatus")
+			buttonStatus(sendResponse);
 	});
 
-	//画刷的动作
-	function brushAction(){
-		canvas.css("pointer-events","auto");
-		brush=true;
-	    eraser=false;
+	// 画刷的切换动作
+	// 执行一次开启画刷，再执行则关闭
+	function toggleBrush(){
+		if(!brush){
+			canvas.css("pointer-events","auto");
+			brush=true;
+		    eraser=false; // 排他性取消橡皮状态
+		}else{
+			canvas.css("pointer-events","none");
+			brush=false;
+		}
 	}
 
-	//橡皮擦的动作
-	function eraserAction(pathSet){
-		canvas.css("pointer-events","auto");
-		eraser=true;
-	    brush=false;
+	//橡皮擦的切换动作
+	function toggleEraser(pathSet){
+		if(!eraser){
+			canvas.css("pointer-events","auto");
+			eraser=true;
+		    brush=false;
 
-	    pathSet.forEach(function(element){
-	        element.mouseover(function(){
-	            if(eraser && mousedown){
-	            	//获取擦除的笔迹的ID
-	            	if(this.id != null)
-	            		console.debug(this.id);
-	                pathSet.exclude(this);
-	                this.remove();
-	            }
-	        });
-	    });
+			// 对于当前的每一个path都添加擦除监听
+		    pathSet.forEach(function(element){
+		        element.mouseover(function(){
+		            if(eraser && mousedown){
+		            	//获取擦除的笔迹的ID
+		            	if(this.id != null)
+		            		console.debug(this.id);
+		                pathSet.exclude(this);
+		                this.remove();
+		            }
+		        });
+		    });
+		}else{
+			canvas.css("pointer-events","none");
+			eraser = false;
+		}
 	}
 
 	//保存的动作
-	function saveAction(pathSet){
+	function saveNote(pathSet){
 		eraser=false;
 		brush=false;
 		canvas.css("pointer-events","none");
@@ -204,6 +219,16 @@ define(function(done){
 				});
 			});
 		});
+	}
+
+	// 返回当前各按钮的状态
+	function buttonStatus(callback){
+		console.log(1234);
+		var response = {
+			'brush': brush,
+			'eraser': eraser
+		};
+		callback(response);
 	}
 
 	//将目前画布中的笔迹信息打包放进saveData中
