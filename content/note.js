@@ -78,11 +78,8 @@ define(function(done){
 			var end = document.elementFromPoint(bbox.x2,bbox.y2);
 			canvas.css("pointer-events",prevCSS);
 			var curRange = document.createRange();
-			// 因为会报错，因此这里先注释掉
-			// TypeError: Failed to execute 'setStart' on 'Range': parameter 1 is not of type 'Node'
-
-			// curRange.setStart(start,0);
-			// curRange.setEnd(end,0);
+			curRange.setStart(start,0);
+			curRange.setEnd(end,0);
 			var cur = curRange.toString().replace(/\s/g,"");
 			return cur == preRange;
 		}
@@ -288,22 +285,13 @@ define(function(done){
 		return id;
 	}
 
-	// 设置自动保存
-	// 这里的pageData由于经过了序列化，从page退化成只有数据的状态
+	// 设置自动同步
 	function setupAutoSync(){
 		if(!AUTO_SYNC_INTERVAL) return;
 
 		setInterval(function(){
 			console.debug('自动同步...');
-			var saveData = pkg2SaveData(pathSet);
-			notecloudUtil.page(url, function(page){
-				page.saveData = saveData;
-				notecloudUtil.sync(page,function(){
-					notecloudUtil.page(url, function(page){
-						console.debug('自动同步完成');
-					});
-				});
-			});
+			saveNote(pathSet);
 		}, AUTO_SYNC_INTERVAL);
 	}
 

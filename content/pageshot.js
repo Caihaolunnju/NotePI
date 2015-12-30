@@ -21,6 +21,10 @@ define(function(done){
     var FIRST_SCREENSHOT_TIME = 4000; // 页面加载后触发第一次截屏的等待时间
     var SCREENSHOT_INTERVAL = 2000; // 每次截屏的时间间隔
 
+    // 自动同步时间间隔（毫秒）
+	// 设置为false则关闭自动同步功能
+	var AUTO_SYNC_INTERVAL = 120000;
+
     // 本页面的url
     var currentURL = window.location.href;
 
@@ -30,6 +34,8 @@ define(function(done){
     // 获取上一次截图的信息，如果有则打开截图
     notecloudUtil.pageshot(currentURL, function(ps){
         pageshot = ps;
+        setupAutoSync();
+
         // 如果有数据，则打开
         if(pageshot.data){
             console.debug('存在上次保存的截图，正在获取...')
@@ -117,6 +123,16 @@ define(function(done){
             image.src = currentDataURL;
         };
         image.src = lastDataURL;
+    }
+
+    // 设置自动同步
+    function setupAutoSync(){
+        if(!AUTO_SYNC_INTERVAL) return;
+
+        setInterval(function(){
+			console.debug('网页截图自动同步...');
+			tabSavePageshot();
+		}, AUTO_SYNC_INTERVAL);
     }
 
     // 有效的滚动操作触发
