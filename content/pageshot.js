@@ -32,7 +32,7 @@ define(function(done){
         pageshot = ps;
         // 如果有数据，则打开
         if(pageshot.data){
-            console.debug('存在上次保存的截图，自动打开...')
+            console.debug('存在上次保存的截图，正在获取...')
             openPageshot(currentURL);
         }
 
@@ -42,12 +42,6 @@ define(function(done){
             if(msg.command === 'tabSavePageshot'){
                 console.debug("保存截图...");
                 tabSavePageshot();
-            }
-
-            if(msg.command === 'tabOpenPageshot'){
-                console.debug("打开截图...");
-                var currentURL = window.location.href;
-                openPageshot(currentURL);
             }
         });
 

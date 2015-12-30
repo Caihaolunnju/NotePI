@@ -12,14 +12,8 @@ var notecloudUtil = {
     'sync': null
 };
 
-// 是否自动同步
-var AUTO_SYNC = false;
-// 同步时间间隔
-var SYNC_INTERVAL = 30000;
-
-// file id 到 interval定时对象的map
-var intervalMap = {};
 // file id 到 同步状态flag的map
+// 防止同一个file并发同步
 var syncStatusMap = {};
 
 !function(){
@@ -33,7 +27,6 @@ var syncStatusMap = {};
             'command': 'page',
             'data': url
         }, function(page){
-            setupAutoSync(page);
             callback(page);
         });
     };
@@ -48,7 +41,6 @@ var syncStatusMap = {};
             'command': 'pageshot',
             'data': url
         }, function(pageshot){
-            setupAutoSync(pageshot);
             callback(pageshot);
         });
     };
@@ -63,7 +55,7 @@ var syncStatusMap = {};
         console.assert(id);
 
         if(syncStatusMap[id]){
-            console.debug('已经在同步，因此跳过本次同步');
+            console.debug('已经在同步，跳过本次同步');
         }else{
             syncStatusMap[id] = true;
             chrome.runtime.sendMessage({
@@ -76,23 +68,3 @@ var syncStatusMap = {};
         }
     };
 }();
-
-// 对文件对象设置自动同步
-function setupAutoSync(file){
-    if(!AUTO_SYNC) return;
-
-    var id = file.__pageId__ || file.__fileId__;
-    console.assert(id);
-
-    // 每个file的interval只能设置一次
-    if(!intervalMap[id]){
-        var interval = setInterval(function(){
-            console.debug('自动同步...');
-            notecloudUtil.sync(file, function(){
-                console.debug('自动同步完成');
-            });
-        }, SYNC_INTERVAL);
-
-        intervalMap[id] = interval;
-    }
-}

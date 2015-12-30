@@ -88,15 +88,19 @@ define(function(done){
 		}
 	};
 
+	// 自动同步时间间隔（毫秒）
+	// 设置为false则关闭自动同步功能
+	var AUTO_SYNC_INTERVAL = 60000;
+
 	//先查看下该页面是否已经有笔记了
 	notecloudUtil.page(url, function(response){
 		console.debug(response);
+		setupAutoSync();
+
 		//如果先前已经有笔记，则将以前的笔记取出，在画布上重现，并且更新idCounter
 		if(typeof response != "undefined"){
 			if(typeof response.saveData != "undefined"){
 				var saveData = response.saveData;
-				console.debug(saveData.width);
-				console.debug(saveData.height);
 				pathSet = loadingNote(saveData, paper);
 				idCounter = getMaxId(saveData);
 			}
@@ -166,11 +170,14 @@ define(function(done){
 	// 画刷的切换动作
 	// 执行一次开启画刷，再执行则关闭
 	function toggleBrush(){
+		// 开启画刷
 		if(!brush){
 			canvas.css("pointer-events","auto");
 			brush=true;
 		    eraser=false; // 排他性取消橡皮状态
-		}else{
+		}
+		// 关闭画刷
+		else{
 			canvas.css("pointer-events","none");
 			brush=false;
 			saveNote(pathSet); // 关闭时保存
@@ -179,6 +186,7 @@ define(function(done){
 
 	//橡皮擦的切换动作
 	function toggleEraser(pathSet){
+		// 开启橡皮擦
 		if(!eraser){
 			canvas.css("pointer-events","auto");
 			eraser=true;
@@ -196,7 +204,9 @@ define(function(done){
 		            }
 		        });
 		    });
-		}else{
+		}
+		// 关闭橡皮擦
+		else{
 			canvas.css("pointer-events","none");
 			eraser = false;
 			saveNote(pathSet);
@@ -205,7 +215,7 @@ define(function(done){
 
 	//保存的动作
 	function saveNote(pathSet){
-		console.debug('保存页面数据...');
+		console.debug('同步页面数据...');
 		var saveData = pkg2SaveData(pathSet);
 		notecloudUtil.page(url, function(page){
 			page.saveData = saveData;
@@ -278,6 +288,25 @@ define(function(done){
 		return id;
 	}
 
+	// 设置自动保存
+	// 这里的pageData由于经过了序列化，从page退化成只有数据的状态
+	function setupAutoSync(){
+		if(!AUTO_SYNC_INTERVAL) return;
+
+		setInterval(function(){
+			console.debug('自动同步...');
+			var saveData = pkg2SaveData(pathSet);
+			notecloudUtil.page(url, function(page){
+				page.saveData = saveData;
+				notecloudUtil.sync(page,function(){
+					notecloudUtil.page(url, function(page){
+						console.debug('自动同步完成');
+					});
+				});
+			});
+		}, AUTO_SYNC_INTERVAL);
+	}
+
 	////////// 以下是对外提供的接口 //////////////
 
 	var modifyListeners = [];
@@ -299,6 +328,7 @@ define(function(done){
 		idCounter = getMaxId(noteInfo);
 	}
 
+	// 添加笔记变化监听函数
 	noteAPI.addModifyListener = function(listener){
 		modifyListeners.push(listener);
 	}
