@@ -15,19 +15,6 @@ $('#eraser').click(function(){
 
 $('#save').click(function(){
    chrome.tabs.query({active: true, currentWindow: true},function(tabs) {
-       chrome.tabs.sendMessage(tabs[0].id, {cmd: "save"},function(response){
-           var url=response.url;
-           var saveData=response.saveData;
-           console.debug(url);
-           console.debug(saveData);
-           notecloudUtil.page(url, function(page){
-               page.saveData = saveData;
-               notecloudUtil.sync(page,function(){
-                   notecloudUtil.page(url, function(page){
-                       console.debug('同步后对象:%s', JSON.stringify(page));
-                   });
-               });
-           });
-       });
+       chrome.tabs.sendMessage(tabs[0].id, {cmd: "save"});
     });
 });

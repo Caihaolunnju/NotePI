@@ -158,7 +158,7 @@ define(function(done){
 			else if(request.cmd == "eraser")
 			  	eraserAction(pathSet);
 			else if(request.cmd == "save") {
-				saveAction(sendResponse,pathSet);
+				saveAction(pathSet);
 			}
 	});
 
@@ -189,11 +189,21 @@ define(function(done){
 	}
 
 	//保存的动作
-	function saveAction(sendResponse, pathSet){
+	function saveAction(pathSet){
 		eraser=false;
 		brush=false;
 		canvas.css("pointer-events","none");
-		sendResponse({"url":url,"saveData":pkg2SaveData(pathSet)});
+
+		console.debug('保存页面数据...');
+		var saveData = pkg2SaveData(pathSet);
+		notecloudUtil.page(url, function(page){
+			page.saveData = saveData;
+			notecloudUtil.sync(page,function(){
+				notecloudUtil.page(url, function(page){
+					console.debug('同步后对象:%s', JSON.stringify(page));
+				});
+			});
+		});
 	}
 
 	//将目前画布中的笔迹信息打包放进saveData中
