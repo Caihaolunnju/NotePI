@@ -159,8 +159,6 @@ define(function(done){
 		    toggleBrush();
 		else if(request.cmd == "eraser")
 		  	toggleEraser(pathSet);
-		else if(request.cmd == "save")
-			saveNote(pathSet);
 		else if(request.cmd == "buttonStatus")
 			buttonStatus(sendResponse);
 	});
@@ -175,6 +173,7 @@ define(function(done){
 		}else{
 			canvas.css("pointer-events","none");
 			brush=false;
+			saveNote(pathSet); // 关闭时保存
 		}
 	}
 
@@ -185,7 +184,7 @@ define(function(done){
 			eraser=true;
 		    brush=false;
 
-			// 对于当前的每一个path都添加擦除监听
+			//TODO: 如果反复点击橡皮按钮，会不会导致这里添加多个mouseover回调？
 		    pathSet.forEach(function(element){
 		        element.mouseover(function(){
 		            if(eraser && mousedown){
@@ -200,15 +199,12 @@ define(function(done){
 		}else{
 			canvas.css("pointer-events","none");
 			eraser = false;
+			saveNote(pathSet);
 		}
 	}
 
 	//保存的动作
 	function saveNote(pathSet){
-		eraser=false;
-		brush=false;
-		canvas.css("pointer-events","none");
-
 		console.debug('保存页面数据...');
 		var saveData = pkg2SaveData(pathSet);
 		notecloudUtil.page(url, function(page){
@@ -223,7 +219,6 @@ define(function(done){
 
 	// 返回当前各按钮的状态
 	function buttonStatus(callback){
-		console.log(1234);
 		var response = {
 			'brush': brush,
 			'eraser': eraser
