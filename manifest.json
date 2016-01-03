@@ -36,6 +36,7 @@
           "css": ["content/css/main.css","content/css/stroke.css"]
         }
     ],
+	"options_page": "options/options.html",
     "permissions": [
         "identity",
         "storage",
