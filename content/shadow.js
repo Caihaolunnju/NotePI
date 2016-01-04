@@ -1,5 +1,5 @@
 /**
- * 将网页上的笔记同步到截图上面的模块
+ * 将网页上的笔记同步到截图模块
  */
 define(function(done){
     var pageshotTabId = null;

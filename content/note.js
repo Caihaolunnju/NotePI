@@ -85,26 +85,38 @@ define(function(done){
 		}
 	};
 
-	// 自动同步时间间隔（毫秒）
-	// 设置为false则关闭自动同步功能
-	var AUTO_SYNC_INTERVAL = 60000;
+	// 页面行为函数集合，其他模块可以重写这个集合中的函数以达到重写功能的目的
+	var pageAction = {
+		'toggleBrush': toggleBrush,
+		'toggleEraser': toggleEraser,
+		'buttonStatus': buttonStatus,
+		'saveNote': saveNote
+	};
 
-	//先查看下该页面是否已经有笔记了
-	notecloudUtil.page(url, function(response){
-		console.debug(response);
-		setupAutoSync();
-
-		//如果先前已经有笔记，则将以前的笔记取出，在画布上重现，并且更新idCounter
-		if(typeof response != "undefined"){
-			if(typeof response.saveData != "undefined"){
-				var saveData = response.saveData;
-				pathSet = loadingNote(saveData, paper);
-				idCounter = getMaxId(saveData);
-			}
-		}
-
-		// 初始化完成，不调用这个传入的方法会导致后续的模块没有机会初始化
+	// 根据脚本种类进行初始化
+	if(!isInternal(url)){
+		// 在普通网页里，进行正常的初始化
+		webPageInit(function(){
+			// 初始化完成，不调用这个传入的方法会导致后续的模块没有机会初始化
+			done();
+		});
+	}else{
+		// 在插件内部页面里，进行自定义初始化
+		// internalPageInit方法是插件中其他模块中定义的初始化方法，如果有定义则调用
+		if((typeof internalPageInit) !== 'undefined') internalPageInit(pageAction);
 		done();
+	}
+
+	//根据popup发出的消息进行回应
+	chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+		if (request.cmd == "brush")
+		    toggleBrush();
+		else if(request.cmd == "eraser")
+		  	toggleEraser(pathSet);
+		else if(request.cmd == "buttonStatus")
+			buttonStatus(sendResponse);
+		else if(request.cmd == "saveNote")
+			saveNote(pathSet);
 	});
 
 	$('body').mousedown(function (e) {
@@ -135,7 +147,6 @@ define(function(done){
 			domBound.clear();
 			canvas.removeClass("drawing");
 		    pathSet.push(path);
-
 		}
 	});
 
@@ -154,15 +165,31 @@ define(function(done){
 		lastY = y;
 	});
 
-	//根据popup发出的消息进行回应
-	chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-		if (request.cmd == "brush")
-		    toggleBrush();
-		else if(request.cmd == "eraser")
-		  	toggleEraser(pathSet);
-		else if(request.cmd == "buttonStatus")
-			buttonStatus(sendResponse);
-	});
+	/////////////////////////////////
+	/// 以下是各种内部工具函数
+	/////////////////////////////////
+
+	// 初始化一个普通的网页
+	// 包括读取（可能存在的）页面数据以及自动同步
+	function webPageInit(callback){
+		//先查看下该页面是否已经有笔记了
+		notecloudUtil.page(url, function(response){
+			console.debug(response);
+			// 设置自动同步
+			setupAutoSync();
+
+			//如果先前已经有笔记，则将以前的笔记取出，在画布上重现，并且更新idCounter
+			if(typeof response != "undefined"){
+				if(typeof response.saveData != "undefined"){
+					var saveData = response.saveData;
+					pathSet = loadingNote(saveData, paper);
+					idCounter = getMaxId(saveData);
+				}
+			}
+
+			callback();
+		});
+	}
 
 	// 画刷的切换动作
 	// 执行一次开启画刷，再执行则关闭
@@ -177,7 +204,7 @@ define(function(done){
 		else{
 			canvas.css("pointer-events","none");
 			brush=false;
-			saveNote(pathSet); // 关闭时保存
+			pageAction.saveNote(pathSet); // 关闭时保存,调用的是可重写版本的函数
 		}
 	}
 
@@ -206,7 +233,7 @@ define(function(done){
 		else{
 			canvas.css("pointer-events","none");
 			eraser = false;
-			saveNote(pathSet);
+			pageAction.saveNote(pathSet);
 		}
 	}
 
@@ -287,6 +314,11 @@ define(function(done){
 
 	// 设置自动同步
 	function setupAutoSync(){
+		// 自动同步时间间隔（毫秒）
+		// 设置为false则关闭自动同步功能
+		// TODO: 这个值应该可以通过插件选项来设置
+		var AUTO_SYNC_INTERVAL = 60000;
+
 		if(!AUTO_SYNC_INTERVAL) return;
 
 		setInterval(function(){
@@ -294,14 +326,23 @@ define(function(done){
 			saveNote(pathSet);
 		}, AUTO_SYNC_INTERVAL);
 	}
-	
+
+	// 判断给定url是不是插件内部页面
+	function isInternal(url){
+		if(url.match(/chrome-extension:\/\//)) return true;
+		return false;
+	}
+
 	//设置画笔颜色
 	$("path").css("stroke","green");
 	//$("#notepi-canvas>svg>path").css("stroke","green");
 	//$("#notepi-canvas>svg>path").css("stroke-width","10");
 	//alert("xiugaichenggong");
 
-	////////// 以下是对外提供的接口 //////////////
+
+	/////////////////////////////////
+	/// 以下是对外提供的接口
+	/////////////////////////////////
 
 	var modifyListeners = [];
 	$('body').mouseup(function (e) {

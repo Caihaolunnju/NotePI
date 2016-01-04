@@ -1,8 +1,8 @@
 /**
- * 显示大型dataURL图片
+ * 本模块负责截图显示更新等相关操作
  */
-// 源网页的tabId
-var srcTabId = Number(location.search.substring(1).match(/src=(\d+)/)[1]);
+
+// 一些初始化相关的函数与变量定义在init.js中
 
 // 监听截图上笔记的修改事件
 noteAPI.addModifyListener(function(){
