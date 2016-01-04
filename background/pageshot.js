@@ -15,8 +15,8 @@
 
         // 打开截图服务
         if(msg.command === 'openPageshot'){
-            var dataURL = msg.data;
-            openPageshot(dataURL, function(){
+            var pageshotData = msg.data;
+            openPageshot(pageshotData, function(){
                 sendResponse();
             });
 
@@ -32,42 +32,36 @@
     }
 
     // 开启新标签页打开截图内容
-    function openPageshot(url, callback){
-        // 获取网页截图对象
-        cloud.file(url, PAGESHOT_DATA_FILE, function(err, pageshot){
-            if(err) return console.error(err);
-            var dataURL = pageshot.data;
+    function openPageshot(dataURL, callback){
+        // 获取消息源tab
+        chrome.tabs.query({currentWindow: true, active : true},function(tabArray){
+            var srcTab = tabArray[0];
+            // 调用相关模块来显示截图
+            chrome.tabs.create({
+                // 在这里偷偷的把源tab的tabId通过url参数传给了截图页面
+                'url': chrome.extension.getURL('content/pageshot/display.html')+'?src='+srcTab.id
+            }, function(tab){
+                // 延时1秒再发送，否则会收不到
+                setTimeout(function(){
+                    // 打开图片
+                    chrome.runtime.sendMessage({
+                        'command': 'displayDataURL',
+                        'data': {
+                            'dataURL': dataURL
+                        }
+                    });
 
-            // 获取消息源tab
-            chrome.tabs.query({currentWindow: true, active : true},function(tabArray){
-                var srcTab = tabArray[0];
-                // 调用相关模块来显示截图
-                chrome.tabs.create({
-                    // 在这里偷偷的把源tab的tabId通过url参数传给了截图页面
-                    'url': chrome.extension.getURL('content/pageshot/display.html')+'?src='+srcTab.id
-                }, function(tab){
-                    // 延时1秒再发送，否则会收不到
-                    setTimeout(function(){
-                        // 打开图片
-                        chrome.runtime.sendMessage({
-                            'command': 'displayDataURL',
-                            'data': {
-                                'dataURL': dataURL
-                            }
-                        });
+                    // 通知源网页打开的截图页面tabId是多少
+                    // 同时也是告诉源网页截图页面打开了
+                    chrome.tabs.sendMessage(srcTab.id,{
+                        'command': 'pageshotCreated',
+                        'data':{
+                            'pageshotTabId': tab.id
+                        }
+                    });
 
-                        // 通知源网页打开的截图页面tabId是多少
-                        // 同时也是告诉源网页截图页面打开了
-                        chrome.tabs.sendMessage(srcTab.id,{
-                            'command': 'pageshotCreated',
-                            'data':{
-                                'pageshotTabId': tab.id
-                            }
-                        });
-
-                        callback();
-                    }, 1000);
-                });
+                    callback();
+                }, 1000);
             });
         });
     }

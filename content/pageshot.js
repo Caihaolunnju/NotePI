@@ -39,7 +39,7 @@ define(function(done){
         // 如果有数据，则打开
         if(pageshot.data){
             console.debug('存在上次保存的截图，正在获取...')
-            openPageshot(currentURL);
+            openPageshot(pageshot.data);
         }
 
         // 来自popup的pageshot相关消息处理
