@@ -299,7 +299,7 @@ define(function(done){
 	$("path").css("stroke","green");
 	//$("#notepi-canvas>svg>path").css("stroke","green");
 	//$("#notepi-canvas>svg>path").css("stroke-width","10");
-	alert("xiugaichenggong");
+	//alert("xiugaichenggong");
 
 	////////// 以下是对外提供的接口 //////////////
 
