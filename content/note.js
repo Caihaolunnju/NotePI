@@ -41,50 +41,6 @@ define(function(done){
 		}
 	};
 
-	//笔记扫过的dom
-	var domBound = {
-		_minX : undefined,
-		_minY : undefined,
-		_maxX : undefined,
-		_maxY : undefined,
-
-		addPoint : function(x,y){
-			if(this._minX==undefined || x<this._minX)this._minX=x;
-			if(this._minY==undefined || y<this._minY)this._minY=y;
-			if(this._maxX==undefined || x>this._maxX)this._maxX=x;
-			if(this._maxY==undefined || y>this._maxY)this._maxY=y;
-		},
-		clear : function(){
-			this._minX = undefined;
-			this._minY = undefined;
-			this._maxX = undefined;
-			this._maxY = undefined;
-		},
-		getDomRange : function(){
-			var prevCSS = canvas.css("pointer-events");
-			canvas.css("pointer-events","none");
-			var start = document.elementFromPoint(this._minX,this._minY);
-			var end = document.elementFromPoint(this._maxX,this._maxY);
-			canvas.css("pointer-events",prevCSS);
-			var range = document.createRange();
-			range.setStart(start,0);
-			range.setEnd(end,0);
-			return range;
-		},
-		check : function(bbox,preRange){
-			var prevCSS = canvas.css("pointer-events");
-			canvas.css("pointer-events","none");
-			var start = document.elementFromPoint(bbox.x,bbox.y);
-			var end = document.elementFromPoint(bbox.x2,bbox.y2);
-			canvas.css("pointer-events",prevCSS);
-			var curRange = document.createRange();
-			curRange.setStart(start,0);
-			curRange.setEnd(end,0);
-			var cur = curRange.toString().replace(/\s/g,"");
-			return cur == preRange;
-		}
-	};
-
 	// 页面行为函数集合，其他模块可以重写这个集合中的函数以达到重写功能的目的
 	var pageAction = {
 		'toggleBrush': toggleBrush,
@@ -126,8 +82,6 @@ define(function(done){
 		    var x = e.offsetX,
 		        y = e.offsetY;
 
-		    domBound.addPoint(e.clientX,e.clientY);
-
 		    pathString = 'M' + x + ' ' + y + 'l0 0';
 		    path = paper.path(pathString);
 		    idCounter++;
@@ -140,11 +94,8 @@ define(function(done){
 	$('body').mouseup(function () {
 		mousedown = false;
 		if(brush){
-			var context = domBound.getDomRange().toString().replace(/\s/g,"");
-			console.debug("获取range");
-			console.debug(context);
+			var context = domRange.getRangeString(path);
 			path.context = context;
-			domBound.clear();
 			canvas.removeClass("drawing");
 		    pathSet.push(path);
 		}
@@ -155,8 +106,6 @@ define(function(done){
 		    return;
 		}
 		var x = e.offsetX, y = e.offsetY;
-
-		domBound.addPoint(e.clientX,e.clientY);
 
 		pathString += 'l' + (x - lastX) + ' ' + (y - lastY);
 		path.attr('path', pathString);
@@ -270,8 +219,6 @@ define(function(done){
 			pathInfo.pathArray = path.attr('path');
 			pathInfo.id = path.id;
 			pathInfo.context = path.context;
-			console.debug("存入range");
-			console.debug(pathInfo.context);
 			saveData.pathInfoArray.push(pathInfo);
 		});
 		return saveData;
@@ -291,14 +238,9 @@ define(function(done){
 			var path = paper.path(pathstring);
 			path.id = pathInfo.id;
 			path.context = pathInfo.context;
-			console.debug("取出range");
-			console.debug(pathInfo.context);
-			var same = domBound.check(path.getBBox(),pathInfo.context);
-			sameCount+=same?1:0;
 			pathSet.push(path);
 		}
-		var ratio = sameCount/saveData.length*100;
-		console.info("同步率："+ratio+"%.");
+		domRange.check(pathSet);
 		return pathSet;
 	}
 

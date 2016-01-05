@@ -28,6 +28,7 @@
               "common/notecloudUtil.js",
               "common/pageshotUtil.js",
               "content/init.js",
+              "content/domrange.js",
               "content/note.js",
               "content/pageshot.js",
               "content/shadow.js",
