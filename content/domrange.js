@@ -6,6 +6,13 @@ var domRange = {};
 
 define(function(done){
 
+	var colding = true;
+	var COLDINGTIME = 2000;
+	var _coldDown = function(){
+		colding = false;
+	};
+	setInterval(_coldDown,COLDINGTIME);
+
 	// 初始化完成，不调用这个传入的方法会导致后续的模块没有机会初始化
 	done();
 
@@ -36,6 +43,7 @@ define(function(done){
 		var canvas = $("#notepi-canvas");
 		var prevCSS = canvas.css("pointer-events");
 		canvas.css("pointer-events","none");
+		if(_outOfView(bbox)) return false;
 		var start = document.elementFromPoint(bbox.x,bbox.y);
 		var end = document.elementFromPoint(bbox.x2,bbox.y2);
 		canvas.css("pointer-events",prevCSS);
@@ -44,6 +52,23 @@ define(function(done){
 		curRange.setEndAfter(end);
 		var cur = curRange.toString().replace(/\s/g,"");
 		return cur == preRange;
+	};
+
+	var _checkAction = function(pathSet){
+		var inViewCount = 0;
+		var matchCount = 0;
+		for(var i=0;i<pathSet.length;i++){
+			var path = pathSet[i];
+			var bbox = _toViewBoundBBox(path.getBBox());
+			if(!_outOfView(bbox)){
+				inViewCount++;
+				if(_compare(bbox,path.context))
+					matchCount++;
+			}
+		}
+		var ratio = (0===inViewCount)?1:matchCount/inViewCount;
+		console.info("同步率："+ratio*100+"%.");
+		colding = true;
 	};
 
 	domRange.getRangeString = function(path){
@@ -66,19 +91,12 @@ define(function(done){
 	};	
 	
 	domRange.check = function(pathSet){
-		var inViewCount = 0;
-		var matchCount = 0;
-		for(var i=0;i<pathSet.length;i++){
-			var path = pathSet[i];
-			var bbox = _toViewBoundBBox(path.getBBox());
-			if(!_outOfView(bbox)){
-				inViewCount++;
-				if(_compare(bbox,path.context))
-					matchCount++;
-			}
-		}
-		var ratio = (0===inViewCount)?0:matchCount/inViewCount*100;
-		console.info("同步率："+ratio+"%.");
+		_checkAction(pathSet);
+		$(window).scroll(function(){
+        	if(!colding){
+        		_checkAction(pathSet);
+        	}
+        });
 	};
 
 });
