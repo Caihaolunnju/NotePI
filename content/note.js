@@ -240,7 +240,7 @@ define(function(done){
 			path.context = pathInfo.context;
 			pathSet.push(path);
 		}
-		domRange.check(pathSet);
+		setTimeout(domRange.check(pathSet),1500);
 		return pathSet;
 	}
 
