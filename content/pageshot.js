@@ -198,7 +198,7 @@ define(function(done){
             image.onload = function() {
                 var sx = 0;
                 var sy = (span.start - x1) * window.devicePixelRatio;
-                var sWidth = image.width;
+                var sWidth = $(document).width() * window.devicePixelRatio;
                 var sHeight = span.length * window.devicePixelRatio;
                 var dx = 0;
                 var dy = span.start;
