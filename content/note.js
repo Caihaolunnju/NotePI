@@ -25,7 +25,7 @@ define(function(done){
 			var pathInfo = {};
 			pathInfo.id=0; //笔迹的ID
 			pathInfo.pathArray = []; //笔迹的path中d属性的字符串
-			pathInfo.context = ""; //笔迹扫过的上下文
+			pathInfo.context = []; //笔迹扫过的上下文
 			return pathInfo;
 		}
 	};
