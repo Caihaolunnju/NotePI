@@ -32,6 +32,7 @@ define(function(done){
     var pageshot = null;
 
     // 获取上一次截图的信息，如果有则打开截图
+    console.debug('检查已有截图数据...');
     notecloudUtil.pageshot(currentURL, function(ps){
         pageshot = ps;
         setupAutoSync();
@@ -40,6 +41,8 @@ define(function(done){
         if(pageshot.data){
             console.debug('存在上次保存的截图，正在获取...')
             openPageshot(pageshot.data);
+        }else{
+            console.debug('新截图');
         }
 
         // 来自popup的pageshot相关消息处理
