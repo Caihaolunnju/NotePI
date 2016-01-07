@@ -30,9 +30,9 @@ function refreshButtons(){
 }
 
 function on(selector){
-    $(selector).text($(selector).data('on'));
+    $(selector).removeClass('disabled');
 }
 
 function off(selector){
-    $(selector).text($(selector).data('off'));
+    $(selector).addClass('disabled');
 }

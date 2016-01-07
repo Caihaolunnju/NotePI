@@ -1,3 +1,17 @@
 body{
-    width: 200px;
+    width: 80px;
+}
+
+.icon{
+    width:15px;
+    height:15px;
+}
+
+.popup-btn{
+    margin-right: 10px;
+    outline: 0;
+}
+
+.disabled{
+    -webkit-filter: grayscale(100%);
 }
