@@ -28,6 +28,7 @@ define(function(done){
 			pathInfo.context = ""; //笔迹扫过的上下文
 			pathInfo.color = "red"; //笔记的颜色
 			pathInfo.width = 5; //笔记的粗细
+			pathInfo.context = []; //笔迹扫过的上下文
 			return pathInfo;
 		}
 	};
@@ -108,8 +109,10 @@ define(function(done){
 	$('body').mouseup(function () {
 		mousedown = false;
 		if(brush){
-			var context = domRange.getRangeString(path);
-			path.context = context;
+			if(typeof domRange !== 'undefined'){
+				var context = domRange.getRangeString(path);
+				path.context = context;
+			}
 			canvas.removeClass("drawing");
 		    pathSet.push(path);
 		}
@@ -136,18 +139,20 @@ define(function(done){
 	// 包括读取（可能存在的）页面数据以及自动同步
 	function webPageInit(callback){
 		//先查看下该页面是否已经有笔记了
+		console.debug("检查现有笔记数据...");
 		notecloudUtil.page(url, function(response){
 			console.debug(response);
 			// 设置自动同步
 			setupAutoSync();
 
 			//如果先前已经有笔记，则将以前的笔记取出，在画布上重现，并且更新idCounter
-			if(typeof response != "undefined"){
-				if(typeof response.saveData != "undefined"){
+			if(typeof response != "undefined" && typeof response.saveData != "undefined"){
+					console.debug("发现已有笔记，还原...");
 					var saveData = response.saveData;
 					pathSet = loadingNote(saveData, paper);
 					idCounter = getMaxId(saveData);
-				}
+			}else{
+				console.debug("新建笔记数据");
 			}
 
 			/*//改变笔记颜色
@@ -273,7 +278,8 @@ define(function(done){
 			//path.attr({'fill':'#999','stroke-opacity' : 0, 'opacity':0.5});
 			pathSet.push(path);
 		}
-		setTimeout(domRange.check(pathSet),1500);
+		if(typeof domRange !== 'undefined')
+			setTimeout(domRange.check(pathSet),1500);
 		return pathSet;
 	}
 

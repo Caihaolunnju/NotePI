@@ -32,6 +32,7 @@ define(function(done){
     var pageshot = null;
 
     // 获取上一次截图的信息，如果有则打开截图
+    console.debug('检查已有截图数据...');
     notecloudUtil.pageshot(currentURL, function(ps){
         pageshot = ps;
         setupAutoSync();
@@ -40,6 +41,8 @@ define(function(done){
         if(pageshot.data){
             console.debug('存在上次保存的截图，正在获取...')
             openPageshot(pageshot.data);
+        }else{
+            console.debug('新截图');
         }
 
         // 来自popup的pageshot相关消息处理
@@ -214,13 +217,15 @@ define(function(done){
 
     // 通知background对可视区域进行截图
     function screenshot(callback){
-        $('#notepi-canvas').hide();
+        // 隐藏笔记，放置截图把笔记截进来
+        $('#notepi-canvas').addClass('invisible');
         // 延时的原因是。。如果不延时，hide之后立刻截图还是会把笔记截进来的
         setTimeout(function(){
             chrome.runtime.sendMessage({
                 "command": "screenshot"
             }, function(screenshotUrl){
-                $('#notepi-canvas').show();
+                // 截图后恢复
+                $('#notepi-canvas').removeClass('invisible');
 
                 callback(screenshotUrl);
             });
