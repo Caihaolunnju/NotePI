@@ -18,6 +18,7 @@ define(function(done){
 	var mousedown = false,lastX, lastY, path, pathString;
 	var brush=false,eraser=false;
 	var idCounter=0; //对path元素ID进行编号的计数器
+	var color;
 
 	//笔迹存储单元，记录的是一笔的信息
 	var PathInfo = {
@@ -76,9 +77,21 @@ define(function(done){
 			buttonStatus(sendResponse);
 		else if(request.cmd == "saveNote")
 			saveNote(pathSet);
+		else if(request.cmd == 'setColor') {
+			color = request.content;
+			console.debug("颜色变为：" + color);
+		}
+	});
+	
+	//向background请求color
+	chrome.runtime.sendMessage({cmd:"getColor",content:"green"}, function(response){
+			color = response;
+			//console.debug("当前颜色：" + color);
 	});
 
 	$('body').mousedown(function (e) {
+		console.debug("当前颜色：" + color);
+		
 		mousedown = true;
 		if(brush){
 			canvas.addClass("drawing");
@@ -86,24 +99,13 @@ define(function(done){
 		        y = e.offsetY;
 
 		    pathString = 'M' + x + ' ' + y + 'l0 0';
-		    path = paper.path(pathString);
+		    path = paper.path(pathString).attr('stroke',color).attr("stroke-width",5);
 		    idCounter++;
 		    path.id = idCounter;
+			path.color = color;
 		    lastX = x;
 		    lastY = y;
 		}
-		/*//改变笔记颜色
-		var color = localStorage.color || 1;
-		//console.debug("color:" + color);
-		if(color == 0) {
-			$("#notepi-canvas>svg>path").css("stroke","red");
-		} else if(color == 1) {
-			$("#notepi-canvas>svg>path").css("stroke","black");
-		} else if(color == 2) {
-			$("#notepi-canvas>svg>path").css("stroke","blue");
-		} else if(color == 3) {
-			$("#notepi-canvas>svg>path").css("stroke","white");
-		}*/
 	});
 
 	$('body').mouseup(function () {
@@ -154,23 +156,6 @@ define(function(done){
 			}else{
 				console.debug("新建笔记数据");
 			}
-
-			/*//改变笔记颜色
-			chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
-			//console.debug("message:" + message.value);
-			localStorage.color = message;
-			});
-			var color = localStorage.color || 1;
-			//console.debug("color:" + color);
-			if(color == 0) {
-				$("#notepi-canvas>svg>path").css("stroke","red");
-			} else if(color == 1) {
-				$("#notepi-canvas>svg>path").css("stroke","black");
-			} else if(color == 2) {
-				$("#notepi-canvas>svg>path").css("stroke","blue");
-			} else if(color == 3) {
-				$("#notepi-canvas>svg>path").css("stroke","white");
-			}*/
 			
 			callback();
 		});
@@ -255,6 +240,7 @@ define(function(done){
 			pathInfo.pathArray = path.attr('path');
 			pathInfo.id = path.id;
 			pathInfo.context = path.context;
+			pathInfo.color = path.color;
 			saveData.pathInfoArray.push(pathInfo);
 		});
 		return saveData;
@@ -271,8 +257,8 @@ define(function(done){
 			pathInfo.pathArray.forEach(function (element){
 				pathstring += element;
 			});
-			var path = paper.path(pathstring).attr('stroke',pathInfo.color).attr("stroke-width",pathInfo.width);
-			
+			path = paper.path(pathstring).attr('stroke',pathInfo.color).attr("stroke-width",pathInfo.width);
+			path.color = pathInfo.color;
 			path.id = pathInfo.id;
 			path.context = pathInfo.context;
 			//path.attr({'fill':'#999','stroke-opacity' : 0, 'opacity':0.5});

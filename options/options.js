@@ -1,13 +1,5 @@
-//alert("嘿嘿嘿");
-//localStorage.removeItem('color');
-//document.getElementsByName('color')[0].checked = true;
-//alert(document.getElementsByName('color')[0].checked);
-
-/*chrome.runtime.sendMessage({name:"setColor",content:"green"}, function(response){
-    document.write(response);
-});*/
 var color;
-chrome.runtime.sendMessage({name:"getColor",content:"green"}, function(response){
+chrome.runtime.sendMessage({cmd:"getColor",content:"green"}, function(response){
     color = response;
 	//处理选项卡中的画笔颜色
 	if(color == "red") {
@@ -40,9 +32,14 @@ document.getElementById('save').onclick = function(){
 	} else if(document.getElementsByName('color')[4].checked) {
 		color = "green";
 	}
-	chrome.runtime.sendMessage({name:"setColor",content:color}, function(response){
+	//给background发消息
+	chrome.runtime.sendMessage({cmd:"setColor",content:color}, function(response){
 		//document.write(response);
 	});
+	//给contentpage发消息
+	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, {cmd:"setColor",content:color});
+    });
     alert('保存成功:' + "颜色：" + color);
 }
 

@@ -1,12 +1,14 @@
-
+ï»¿
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
-	//ÉèÖÃ»­±ÊÑÕÉ«
-    if(message.name == 'setColor'){
+	//è®¾ç½®ç”»ç¬”é¢œè‰²
+    if(message.cmd == 'setColor'){
         localStorage.color = message.content;
-		console.debug("ÏÖÔÚ±ÊµÄÑÕÉ«£º" + localStorage.color);
+		console.debug("ç°åœ¨ç¬”çš„é¢œè‰²ï¼š" + localStorage.color);
     }
-	//»ñÈ¡»­±ÊÑÕÉ«
-	if(message.name == 'getColor') {
+	//è·å–ç”»ç¬”é¢œè‰²
+	if(message.cmd == 'getColor') {
+		//console.debug(localStorage.color);
 		sendResponse(localStorage.color || "red");
+		
 	}
 });
