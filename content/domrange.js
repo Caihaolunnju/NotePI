@@ -6,12 +6,6 @@ var domRange = {};
 
 define(function(done){
 
-	var colding = true;
-	var COLDINGTIME = 2000;
-	var _coldDown = function(){
-		colding = false;
-	};
-	setInterval(_coldDown,COLDINGTIME);
 	var PICK_MAX_COUNT = 100;
 
 	var _DOMSet = {
@@ -26,10 +20,43 @@ define(function(done){
 			}
 		},
 		pickAll : function(){
-			var result = this._array.map(function(e){return e.textContent.replace(/\s/g,"");});
+			var result = this._array.map(function(e){
+				return {
+					path : _getPathTo(e),
+					text : _getText(e)
+				}
+			});
 			this._array.length = 0;
 			return result;
 		}
+	};
+
+	var _getPathTo = function(element) {
+	    if (element.id!=='')
+	        return 'id("'+element.id+'")';
+	    if (element===document.body)
+	        return element.tagName;
+
+	    var ix= 0;
+	    var siblings= element.parentNode.childNodes;
+	    for (var i= 0; i<siblings.length; i++) {
+	        var sibling= siblings[i];
+	        if (sibling===element)
+	            return _getPathTo(element.parentNode)+'/'+element.tagName+'['+(ix+1)+']';
+	        if (sibling.nodeType===1 && sibling.tagName===element.tagName)
+	            ix++;
+	    }
+	};
+
+	var _getText = function(element){
+		var tagName = element.tagName;
+		var text = "";
+		if(tagName == "IMG"){
+			text = element.src;
+		}else{
+			text = element.textContent.replace(/\s/g,"");
+		}
+		return text;
 	};
 
 
@@ -61,11 +88,13 @@ define(function(done){
 		return set;
 	};	
 
-	var _compare = function(curDOMSet,preDOMSet){
-		for(var i in curDOMSet){
-			if(-1 == preDOMSet.indexOf(curDOMSet[i])){
-				return false;
-			}
+	var _compare = function(domSet){
+		for(var i in domSet){
+			var domInfo = domSet[i];
+			var curDOM = document.evaluate(domInfo.path,document).iterateNext();
+			if(null == curDOM) return false;
+			var curText = _getText(curDOM);
+			return domInfo.text === curText;
 		}
 		return true;
 	};
@@ -75,10 +104,9 @@ define(function(done){
 		var matchCount = 0;
 		for(var i=0;i<pathSet.length;i++){
 			var path = pathSet[i];
-			var curDOMSet = _getRelatedDOMSet(path);
-			var preDOMSet = path.context;
+			var domSet = path.context;
 			inViewCount++;
-			if(_compare(curDOMSet,preDOMSet)){
+			if(_compare(domSet)){
 				matchCount++;
 			}
 		}
@@ -93,11 +121,6 @@ define(function(done){
 	
 	domRange.check = function(pathSet){
 		_checkAction(pathSet);
-		$(window).scroll(function(){
-        	if(!colding){
-        		_checkAction(pathSet);
-        	}
-        });
 	};
 
 });
