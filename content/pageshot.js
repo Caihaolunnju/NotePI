@@ -217,13 +217,15 @@ define(function(done){
 
     // 通知background对可视区域进行截图
     function screenshot(callback){
-        $('#notepi-canvas').hide();
+        // 隐藏笔记，放置截图把笔记截进来
+        $('#notepi-canvas').addClass('invisible');
         // 延时的原因是。。如果不延时，hide之后立刻截图还是会把笔记截进来的
         setTimeout(function(){
             chrome.runtime.sendMessage({
                 "command": "screenshot"
             }, function(screenshotUrl){
-                $('#notepi-canvas').show();
+                // 截图后恢复
+                $('#notepi-canvas').removeClass('invisible');
 
                 callback(screenshotUrl);
             });
