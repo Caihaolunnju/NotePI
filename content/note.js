@@ -26,6 +26,8 @@ define(function(done){
 			pathInfo.id=0; //笔迹的ID
 			pathInfo.pathArray = []; //笔迹的path中d属性的字符串
 			pathInfo.context = ""; //笔迹扫过的上下文
+			pathInfo.color = "red"; //笔记的颜色
+			pathInfo.width = 5; //笔记的粗细
 			return pathInfo;
 		}
 	};
@@ -89,6 +91,18 @@ define(function(done){
 		    lastX = x;
 		    lastY = y;
 		}
+		/*//改变笔记颜色
+		var color = localStorage.color || 1;
+		//console.debug("color:" + color);
+		if(color == 0) {
+			$("#notepi-canvas>svg>path").css("stroke","red");
+		} else if(color == 1) {
+			$("#notepi-canvas>svg>path").css("stroke","black");
+		} else if(color == 2) {
+			$("#notepi-canvas>svg>path").css("stroke","blue");
+		} else if(color == 3) {
+			$("#notepi-canvas>svg>path").css("stroke","white");
+		}*/
 	});
 
 	$('body').mouseup(function () {
@@ -136,6 +150,23 @@ define(function(done){
 				}
 			}
 
+			/*//改变笔记颜色
+			chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
+			//console.debug("message:" + message.value);
+			localStorage.color = message;
+			});
+			var color = localStorage.color || 1;
+			//console.debug("color:" + color);
+			if(color == 0) {
+				$("#notepi-canvas>svg>path").css("stroke","red");
+			} else if(color == 1) {
+				$("#notepi-canvas>svg>path").css("stroke","black");
+			} else if(color == 2) {
+				$("#notepi-canvas>svg>path").css("stroke","blue");
+			} else if(color == 3) {
+				$("#notepi-canvas>svg>path").css("stroke","white");
+			}*/
+			
 			callback();
 		});
 	}
@@ -235,9 +266,11 @@ define(function(done){
 			pathInfo.pathArray.forEach(function (element){
 				pathstring += element;
 			});
-			var path = paper.path(pathstring);
+			var path = paper.path(pathstring).attr('stroke',pathInfo.color).attr("stroke-width",pathInfo.width);
+			
 			path.id = pathInfo.id;
 			path.context = pathInfo.context;
+			//path.attr({'fill':'#999','stroke-opacity' : 0, 'opacity':0.5});
 			pathSet.push(path);
 		}
 		setTimeout(domRange.check(pathSet),1500);
@@ -274,12 +307,6 @@ define(function(done){
 		if(url.match(/chrome-extension:\/\//)) return true;
 		return false;
 	}
-
-	//设置画笔颜色
-	$("path").css("stroke","green");
-	//$("#notepi-canvas>svg>path").css("stroke","green");
-	//$("#notepi-canvas>svg>path").css("stroke-width","10");
-	//alert("xiugaichenggong");
 
 
 	/////////////////////////////////

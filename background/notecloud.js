@@ -12,7 +12,7 @@ var PAGESHOT_DATA_FILE = 'pageshotdata';
 // 这里设置了本地模拟模式，数据将全部存储在本地的chrome.storage.local上面，方便开发
 // 但是要注意的是，本地存储上限只有5MB，请谨慎使用
 cloud.configuration({
-    local: true, // 将这句话注掉就变成了正常模式，将与Google Drive交互，容量『理论上』不受限制
+    //local: true, // 将这句话注掉就变成了正常模式，将与Google Drive交互，容量『理论上』不受限制
 });
 
 // 注册云存储消息监听

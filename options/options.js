@@ -28,7 +28,10 @@ document.getElementById('save').onclick = function(){
 	} else if(document.getElementsByName('color')[3].checked) {
 		localStorage.color = 3;
 	}
-	
+	chrome.runtime.sendMessage(localStorage.color, function(response){
+		document.write(response);
+	});
 	
     alert('保存成功:' + "颜色：" + localStorage.color);
 }
+
