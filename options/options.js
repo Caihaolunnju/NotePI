@@ -3,35 +3,46 @@
 //document.getElementsByName('color')[0].checked = true;
 //alert(document.getElementsByName('color')[0].checked);
 
-//处理选项卡中的画笔颜色
-var color = localStorage.color || 0;
-if(color == 0) {
-	document.getElementsByName('color')[0].checked = true;
-} else if(color == 1) {
-	document.getElementsByName('color')[1].checked = true;
-} else if(color == 2) {
-	document.getElementsByName('color')[2].checked = true;
-} else if(color == 3) {
-	document.getElementsByName('color')[3].checked = true;
-}
+/*chrome.runtime.sendMessage({name:"setColor",content:"green"}, function(response){
+    document.write(response);
+});*/
+var color;
+chrome.runtime.sendMessage({name:"getColor",content:"green"}, function(response){
+    color = response;
+	//处理选项卡中的画笔颜色
+	if(color == "red") {
+		document.getElementsByName('color')[0].checked = true;
+	} else if(color == "black") {
+		document.getElementsByName('color')[1].checked = true;
+	} else if(color == "blue") {
+		document.getElementsByName('color')[2].checked = true;
+	} else if(color == "white") {
+		document.getElementsByName('color')[3].checked = true;
+	} else if(color == "green") {
+		document.getElementsByName('color')[4].checked = true;
+	}
+
+});
+
 
 
 //点击保存按钮
 document.getElementById('save').onclick = function(){
 	//保存画笔颜色
 	if(document.getElementsByName('color')[0].checked) {
-		localStorage.color = 0;
+		color = "red";
 	} else if(document.getElementsByName('color')[1].checked) {
-		localStorage.color = 1;
+		color = "black";
 	} else if(document.getElementsByName('color')[2].checked) {
-		localStorage.color = 2;
+		color = "blue";
 	} else if(document.getElementsByName('color')[3].checked) {
-		localStorage.color = 3;
+		color = "white";
+	} else if(document.getElementsByName('color')[4].checked) {
+		color = "green";
 	}
-	chrome.runtime.sendMessage(localStorage.color, function(response){
-		document.write(response);
+	chrome.runtime.sendMessage({name:"setColor",content:color}, function(response){
+		//document.write(response);
 	});
-	
-    alert('保存成功:' + "颜色：" + localStorage.color);
+    alert('保存成功:' + "颜色：" + color);
 }
 

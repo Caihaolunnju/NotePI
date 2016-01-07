@@ -15,7 +15,8 @@
             "background/notecloud/cloud.js",
             "background/notecloud.js",
             "background/pageshot.js",
-            "background/eventPage.js"
+            "background/eventPage.js",
+			"background/options.js"
         ],
         "persistent": false
     },
