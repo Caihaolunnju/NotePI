@@ -151,6 +151,14 @@ define(function(done){
 			if(typeof response != "undefined" && typeof response.saveData != "undefined"){
 					console.debug("发现已有笔记，还原...");
 					var saveData = response.saveData;
+					var curWidth = document.body.scrollWidth;
+					var curHeight = document.body.scrollHeight;
+					if(curWidth==saveData.width && curHeight==saveData.height){
+						alert("宽高没有发生变化");
+					}
+					else{
+						alert("原来的：width="+saveData.width+" height="+saveData.height+"\n现在的：width="+document.body.scrollWidth+" height="+document.body.scrollHeight);
+					}
 					pathSet = loadingNote(saveData, paper);
 					idCounter = getMaxId(saveData);
 			}else{
