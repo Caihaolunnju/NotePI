@@ -1,7 +1,7 @@
-var color;
+ï»¿var color;
 chrome.runtime.sendMessage({cmd:"getColor",content:"green"}, function(response){
     color = response;
-	//´¦ÀíÑ¡Ïî¿¨ÖĞµÄ»­±ÊÑÕÉ«
+	//å¤„ç†é€‰é¡¹å¡ä¸­çš„ç”»ç¬”é¢œè‰²
 	if(color == "red") {
 		document.getElementsByName('color')[0].checked = true;
 	} else if(color == "black") {
@@ -16,9 +16,9 @@ chrome.runtime.sendMessage({cmd:"getColor",content:"green"}, function(response){
 
 });
 
-//µã»÷±£´æ°´Å¥
+//ç‚¹å‡»ä¿å­˜æŒ‰é’®
 document.getElementById('save').onclick = function(){
-	//±£´æ»­±ÊÑÕÉ«
+	//ä¿å­˜ç”»ç¬”é¢œè‰²
 	if(document.getElementsByName('color')[0].checked) {
 		color = "red";
 	} else if(document.getElementsByName('color')[1].checked) {
@@ -30,17 +30,17 @@ document.getElementById('save').onclick = function(){
 	} else if(document.getElementsByName('color')[4].checked) {
 		color = "green";
 	}
-	//¸øbackground·¢ÏûÏ¢
+	//ç»™backgroundå‘æ¶ˆæ¯
 	chrome.runtime.sendMessage({cmd:"setColor",content:color}, function(response){
 		//document.write(response);
 	});
-	//¸øcontentpage·¢ÏûÏ¢
+	//ç»™contentpageå‘æ¶ˆæ¯
 	chrome.tabs.query({}, function(tabs) {
 		for (i in tabs) {
 			console.debug("aa");
 			chrome.tabs.sendMessage(tabs[i].id, {cmd:"setColor",content:color});
 		}
     });
-    alert('±£´æ³É¹¦:' + "ÑÕÉ«£º" + color);
+    alert('ä¿å­˜æˆåŠŸ:' + "é¢œè‰²ï¼š" + color);
 }
 
