@@ -42,5 +42,5 @@ document.getElementById('save').onclick = function(){
 		}
     });
     alert('保存成功:' + "颜色：" + color);
+    window.close();
 }
-

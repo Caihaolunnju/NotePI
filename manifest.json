@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "NotePI",
     "description": "Chrome note extension",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "browser_action": {
         "default_icon": "resource/note.png",
         "default_popup": "popup/popup.html"
@@ -41,10 +41,9 @@
     ],
 	"options_ui": {
 		"page": "options/options.html",
-		"chrome_style": true,
-		"open_in_tab": true
+		"chrome_style": true
 	},
-	
+
     "permissions": [
         "identity",
         "storage",
