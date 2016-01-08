@@ -120,12 +120,16 @@ define(function(done){
 		return noMatchIDs;
 	};
 
-	domRange.getRangeString = function(path){
+	domRange.getContext = function(path){
 		return _getRelatedDOMSet(path);
 	};	
 	
-	domRange.check = function(pathSet){
+	domRange.checkXPath = function(pathSet){
 		return _checkAction(pathSet);
+	};
+
+	domRange.checkNoteNotMatch = function(pathSet){
+		return 0;
 	};
 
 });

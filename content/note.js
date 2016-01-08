@@ -112,7 +112,7 @@ define(function(done){
 		mousedown = false;
 		if(brush){
 			if(typeof domRange !== 'undefined'){
-				var context = domRange.getRangeString(path);
+				var context = domRange.getContext(path);
 				path.context = context;
 			}
 			canvas.removeClass("drawing");

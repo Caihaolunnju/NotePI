@@ -9,7 +9,7 @@ define(function(done){
 	function checkPageDom(pathSet){
 		var noMatchIDs = [];
 		if(typeof domRange !== 'undefined'){
-			setTimeout(noMatchIDs=domRange.check(pathSet),1500);
+			setTimeout(noMatchIDs=domRange.checkXPath(pathSet),1500);
 		}
 		var ratio = 0;
 		if((0===pathSet.length) || (0===noMatchIDs.length)){
