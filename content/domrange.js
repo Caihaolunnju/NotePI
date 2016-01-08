@@ -100,19 +100,24 @@ define(function(done){
 	};
 
 	var _checkAction = function(pathSet){
-		var inViewCount = 0;
-		var matchCount = 0;
+		//var inViewCount = 0;
+		//var matchCount = 0;
+		var noMatchIDs = [];
 		for(var i=0;i<pathSet.length;i++){
 			var path = pathSet[i];
 			var domSet = path.context;
-			inViewCount++;
-			if(_compare(domSet)){
-				matchCount++;
+			//inViewCount++;
+			//if(_compare(domSet)){
+				//matchCount++;
+			//}
+			if(!_compare(domSet)){
+				noMatchIDs.push(path.id);
 			}
 		}
-		var ratio = (0===inViewCount)?1:matchCount/inViewCount;
-		console.info("同步率："+(ratio*100).toFixed(1)+"%.");
+		//var ratio = (0===inViewCount)?1:matchCount/inViewCount;
+		//console.info("同步率："+(ratio*100).toFixed(1)+"%.");
 		colding = true;
+		return noMatchIDs;
 	};
 
 	domRange.getRangeString = function(path){
@@ -120,7 +125,7 @@ define(function(done){
 	};	
 	
 	domRange.check = function(pathSet){
-		_checkAction(pathSet);
+		return _checkAction(pathSet);
 	};
 
 });

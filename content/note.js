@@ -151,27 +151,17 @@ define(function(done){
 			if(typeof response != "undefined" && typeof response.saveData != "undefined"){
 					console.debug("发现已有笔记，还原...");
 					var saveData = response.saveData;
-					check(saveData);
 					pathSet = loadingNote(saveData, paper);
 					idCounter = getMaxId(saveData);
+					if(typeof checkAPI !== 'undefined'){
+						checkAPI.checkPage(saveData, pathSet);	//会返回检查页面的结果
+					}
 			}else{
 				console.debug("新建笔记数据");
 			}
 			
 			callback();
 		});
-	}
-
-	function check(saveData){
-		
-		var curWidth = document.body.scrollWidth;
-		var curHeight = document.body.scrollHeight;
-		if(Math.abs(curWidth/curHeight-saveData.width/saveData.height) < 0.005){
-			alert("宽高没有发生变化");
-		}
-		else{
-				alert("原来的：width="+saveData.width+" height="+saveData.height+"\n现在的：width="+document.body.scrollWidth+" height="+document.body.scrollHeight);
-		}
 	}
 
 	// 画刷的切换动作
@@ -277,8 +267,6 @@ define(function(done){
 			//path.attr({'fill':'#999','stroke-opacity' : 0, 'opacity':0.5});
 			pathSet.push(path);
 		}
-		if(typeof domRange !== 'undefined')
-			setTimeout(domRange.check(pathSet),1500);
 		return pathSet;
 	}
 
