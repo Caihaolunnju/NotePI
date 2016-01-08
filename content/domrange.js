@@ -6,29 +6,33 @@ var domRange = {};
 
 define(function(done){
 
+	var COLDINGTIME = 3000;
+	var colding = true;
+	var _cold = function(){colding=false;};
+	setInterval(_cold,COLDINGTIME);
+
 	var PICK_MAX_COUNT = 100;
 
-	var _DOMSet = {
-		_array : [],
-
-		put : function(element){
-			if(undefined == element || null == element){
-				return;
-			}
-			if(-1 === this._array.indexOf(element)){
-				this._array.push(element);
-			}
-		},
-		pickAll : function(){
-			var result = this._array.map(function(e){
-				return {
-					path : _getPathTo(e),
-					text : _getText(e)
-				}
-			});
-			this._array.length = 0;
-			return result;
+	function _DOMSet(){
+		this._array = [];
+	}
+	_DOMSet.prototype.put = function(element){
+		if(undefined == element || null == element){
+			return;
 		}
+		if(-1 === this._array.indexOf(element)){
+			this._array.push(element);
+		}
+	};
+	_DOMSet.prototype.pickAll = function(){
+		var result = this._array.map(function(e){
+			return {
+				path : _getPathTo(e),
+				text : _getText(e)
+			}
+		});
+		this._array.length = 0;
+		return result;
 	};
 
 	var _getPathTo = function(element) {
@@ -68,7 +72,7 @@ define(function(done){
 		return {
 			x : coord[1]-document.body.scrollLeft,
 			y : coord[2]-document.body.scrollTop
-			};
+		};
 	};
 
 	var _getRelatedDOMSet = function(path){
@@ -76,19 +80,20 @@ define(function(done){
 		var points = path.getPath();
 		var pickCount = Math.min(points.length,PICK_MAX_COUNT);
 		var delta = Math.round(points.length/pickCount);
+		var domSet = new _DOMSet();
 		for(var i=0;i<pickCount;i+=delta){
 			var pickPoint = _toRelativePathCoord(points[i]);
 			var prevCSS = canvas.css("pointer-events");
 			canvas.css("pointer-events","none");
 			var pickDOM = document.elementFromPoint(pickPoint.x,pickPoint.y);
 			canvas.css("pointer-events",prevCSS);
-			_DOMSet.put(pickDOM);
+			domSet.put(pickDOM);
 		}
-		var set = _DOMSet.pickAll();
+		var set = domSet.pickAll();
 		return set;
 	};	
 
-	var _compare = function(domSet){
+	var _compareXPath = function(domSet){
 		for(var i in domSet){
 			var domInfo = domSet[i];
 			var curDOM = document.evaluate(domInfo.path,document).iterateNext();
@@ -99,24 +104,39 @@ define(function(done){
 		return true;
 	};
 
-	var _checkAction = function(pathSet){
-		//var inViewCount = 0;
-		//var matchCount = 0;
+	var _compareDOMSet = function(preDOMSet,curDOMSet){
+		var preDOMText = preDOMSet.map(function(e){return e.text;});
+		var curDOMText = curDOMSet.map(function(e){return e.text;});
+		for(var i in curDOMText){
+			var curText = curDOMText[i];
+			if(-1 == preDOMText.indexOf(curText)){
+				return false;
+			}
+		}
+		return true;
+	};
+
+	var _compareElementContent = function(pathSet){
+		for(var i=0;i<pathSet.length;i++){
+			var path = pathSet[i];
+			var curDOMSet = _getRelatedDOMSet(path);
+			if(!_compareDOMSet(path.context,curDOMSet)){
+				var id = path.id;
+				console.debug("Path"+id+"未匹配。");//需要接口
+			}
+		}
+		colding = true;
+	};
+
+	var _checkXPath = function(pathSet){
 		var noMatchIDs = [];
 		for(var i=0;i<pathSet.length;i++){
 			var path = pathSet[i];
 			var domSet = path.context;
-			//inViewCount++;
-			//if(_compare(domSet)){
-				//matchCount++;
-			//}
-			if(!_compare(domSet)){
+			if(!_compareXPath(domSet)){
 				noMatchIDs.push(path.id);
 			}
 		}
-		//var ratio = (0===inViewCount)?1:matchCount/inViewCount;
-		//console.info("同步率："+(ratio*100).toFixed(1)+"%.");
-		colding = true;
 		return noMatchIDs;
 	};
 
@@ -125,11 +145,16 @@ define(function(done){
 	};	
 	
 	domRange.checkXPath = function(pathSet){
-		return _checkAction(pathSet);
+		return _checkXPath(pathSet);
 	};
 
 	domRange.checkNoteNotMatch = function(pathSet){
-		return 0;
+		_compareElementContent(pathSet);
+		$(window).scroll(function(){
+			if(!colding){
+				_compareElementContent(pathSet);
+			}
+		});
 	};
 
 });

@@ -47,6 +47,7 @@ define(function(done){
 		var sizeCheck = checkWidthHeight(saveData);
 		if(sizeCheck){
 			alert("宽高没有发生变化！\n笔迹内容匹配率为："+(domResult.ratio*100).toFixed(1)+"%.");
+			domRange.checkNoteNotMatch(pathSet);
 		}
 		else{
 			alert("宽高发生变化！\n笔迹内容匹配率为："+(domResult.ratio*100).toFixed(1)+"%.");
