@@ -4,12 +4,22 @@
 
 // 源网页的tabId
 var srcTabId = Number(location.search.substring(1).match(/src=(\d+)/)[1]);
-// 截图页面的宽度
+// 截图宽度
 var pageshotWidth = Number(location.search.substring(1).match(/width=(\d+)/)[1]);
+// 截图高度
+var pageshotHeight = Number(location.search.substring(1).match(/height=(\d+)/)[1]);
 
+var modQueue = [];
 // 预定义define方法兼容部分模块
 var define = function(mod){
-    mod(function(){});
+    modQueue.push(mod);
+};
+
+// 统一初始化
+var init = function(){
+    modQueue.forEach(function(mod){
+        mod(function(){});
+    });
 };
 
 // note.js内部页面中提供给其他模块进行初始化动作的钩子函数

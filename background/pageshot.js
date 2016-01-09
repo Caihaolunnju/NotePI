@@ -35,6 +35,7 @@
     function openPageshot(pageshotData, callback){
         var dataURL = pageshotData.url;
         var width = pageshotData.width;
+        var height = pageshotData.height;
 
         // 获取消息源tab
         chrome.tabs.query({currentWindow: true, active : true},function(tabArray){
@@ -43,7 +44,7 @@
             chrome.tabs.create({
                 // 在这里偷偷的把源tab的tabId通过url参数传给了截图页面
                 'url': chrome.extension.getURL('content/pageshot/display.html')
-                            +'?src='+srcTab.id+'&width='+width
+                            +'?src='+srcTab.id+'&width='+width+'&height='+height
             }, function(tab){
                 // 延时1秒再发送，否则会收不到
                 setTimeout(function(){

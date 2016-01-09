@@ -8,8 +8,9 @@ $(function(){
     });
 
     $('body').mouseover(function(){
-        closeTimeout.forEach(function(to){
+        while(closeTimeout.length > 0){
+            var to = closeTimeout.pop();
             clearTimeout(to);
-        });
+        }
     });
 });

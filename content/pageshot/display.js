@@ -4,10 +4,13 @@
 
 // 一些初始化相关的函数与变量定义在init.js中
 
-$(function(){
-    // 固定截图的宽度
-    $('#pic').width(pageshotWidth);
-});
+// 固定截图尺寸
+$('#picDiv').width(pageshotWidth);
+$('#picDiv').height(pageshotHeight);
+
+// 特地写一个init方法是因为要保证把图片的位置先撑开，然后note.js才能初始化
+// 否则note.js里面会直接获取当前空页面的可视区域作为画板的大小，这是不对的
+init();
 
 // 监听截图上笔记的修改事件
 noteAPI.addModifyListener(function(){

@@ -46,7 +46,8 @@ define(function(done){
             console.debug('存在上次保存的截图，正在获取...')
             openPageshot({
                 url: pageshot.data,
-                width: pageshot.width
+                width: pageshot.width,
+                height: pageshot.height
             });
         }else{
             console.debug('新截图');
@@ -100,6 +101,7 @@ define(function(done){
             // 使用合并后新的截图数据并同步
             pageshot.data = dataURL;
             pageshot.width = pageWidth;
+            pageshot.height = pageHeight;
 
             notecloudUtil.sync(pageshot, function(){
                 console.debug('截图同步完成');
