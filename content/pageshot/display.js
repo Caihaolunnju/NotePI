@@ -4,6 +4,11 @@
 
 // 一些初始化相关的函数与变量定义在init.js中
 
+$(function(){
+    // 固定截图的宽度
+    $('#pic').width(pageshotWidth);
+});
+
 // 监听截图上笔记的修改事件
 noteAPI.addModifyListener(function(){
     var noteInfo = noteAPI.info();

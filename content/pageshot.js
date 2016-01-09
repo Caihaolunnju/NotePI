@@ -2,10 +2,14 @@
  * 截图功能模块
  */
 define(function(done){
+    // 截图宽度应该只有可见部分
+    var pageWidth = document.body.scrollWidth
+    var pageHeight = document.body.scrollHeight;
+
     // 绘制整个网页截图使用的canvas
     var pageCanvas = document.createElement('canvas');
-    pageCanvas.height = $(document).height();
-    pageCanvas.width = $(document).width();
+    pageCanvas.height = pageHeight;
+    pageCanvas.width = pageWidth;
     var pageCtx = pageCanvas.getContext('2d');
 
     // 临时画布，防止临时canvas被回收而设置在这里的全局变量
@@ -40,7 +44,10 @@ define(function(done){
         // 如果有数据，则打开
         if(pageshot.data){
             console.debug('存在上次保存的截图，正在获取...')
-            openPageshot(pageshot.data);
+            openPageshot({
+                url: pageshot.data,
+                width: pageshot.width
+            });
         }else{
             console.debug('新截图');
         }
@@ -92,6 +99,7 @@ define(function(done){
         mergePageshot(lastDataURL, currentDataURL, function(dataURL){
             // 使用合并后新的截图数据并同步
             pageshot.data = dataURL;
+            pageshot.width = pageWidth;
 
             notecloudUtil.sync(pageshot, function(){
                 console.debug('截图同步完成');
@@ -100,8 +108,8 @@ define(function(done){
     }
 
     // 打开截图页面
-    function openPageshot(url){
-        pageshotUtil.openPageshot(url);
+    function openPageshot(data){
+        pageshotUtil.openPageshot(data);
     }
 
     // 合并两张截图数据，返回合并后的截图的dataURL
@@ -201,11 +209,11 @@ define(function(done){
             image.onload = function() {
                 var sx = 0;
                 var sy = (span.start - x1) * window.devicePixelRatio;
-                var sWidth = $(document).width() * window.devicePixelRatio;
+                var sWidth = pageWidth * window.devicePixelRatio;
                 var sHeight = span.length * window.devicePixelRatio;
                 var dx = 0;
                 var dy = span.start;
-                var dWidth = $(document).width();
+                var dWidth = pageWidth;
                 var dHeight = sHeight / sWidth * dWidth;
 
                 pageCtx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);

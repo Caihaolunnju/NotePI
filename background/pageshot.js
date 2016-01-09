@@ -32,14 +32,18 @@
     }
 
     // 开启新标签页打开截图内容
-    function openPageshot(dataURL, callback){
+    function openPageshot(pageshotData, callback){
+        var dataURL = pageshotData.url;
+        var width = pageshotData.width;
+
         // 获取消息源tab
         chrome.tabs.query({currentWindow: true, active : true},function(tabArray){
             var srcTab = tabArray[0];
             // 调用相关模块来显示截图
             chrome.tabs.create({
                 // 在这里偷偷的把源tab的tabId通过url参数传给了截图页面
-                'url': chrome.extension.getURL('content/pageshot/display.html')+'?src='+srcTab.id
+                'url': chrome.extension.getURL('content/pageshot/display.html')
+                            +'?src='+srcTab.id+'&width='+width
             }, function(tab){
                 // 延时1秒再发送，否则会收不到
                 setTimeout(function(){
