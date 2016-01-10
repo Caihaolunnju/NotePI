@@ -154,7 +154,7 @@ define(function(done){
 					pathSet = loadingNote(saveData, paper);
 					idCounter = getMaxId(saveData);
 					if(typeof checkAPI !== 'undefined'){
-						checkAPI.checkPage(saveData, pathSet);	//会返回检查页面的结果
+						var result = checkAPI.checkPage(saveData, pathSet);	//会返回检查页面的结果
 					}
 			}else{
 				console.debug("新建笔记数据");
@@ -190,8 +190,10 @@ define(function(done){
 		    brush=false;
 
 			//TODO: 如果反复点击橡皮按钮，会不会导致这里添加多个mouseover回调？
-		    pathSet.forEach(function(element){
-		        element.mouseover(function(){
+			//查了一下，网上说是原生的js绑多了，会留最后一个，jQuery是帮多少就执行多少
+			//所以我觉得这个应该是属于原生的js
+			for(i in pathSet){
+		        pathSet[i].mouseover(function(){
 		            if(eraser && mousedown){
 		            	//获取擦除的笔迹的ID
 		            	if(this.id != null)
@@ -200,7 +202,7 @@ define(function(done){
 		                this.remove();
 		            }
 		        });
-		    });
+		    }
 		}
 		// 关闭橡皮擦
 		else{
@@ -238,14 +240,15 @@ define(function(done){
 		var saveData = SaveData.creatNew();
 		saveData.width = document.body.scrollWidth;
 		saveData.height = document.body.scrollHeight;
-		pathSet.forEach(function(path){
+		for(var i=0; i<pathSet.length; i++){
+			var path = pathSet[i];
 			var pathInfo = PathInfo.createNew();
 			pathInfo.pathArray = path.attr('path');
 			pathInfo.id = path.id;
 			pathInfo.context = path.context;
 			pathInfo.color = path.color;
 			saveData.pathInfoArray.push(pathInfo);
-		});
+		}
 		return saveData;
 	}
 
@@ -257,9 +260,11 @@ define(function(done){
 		for(var i in saveData.pathInfoArray){
 			var pathInfo = saveData.pathInfoArray[i];
 			pathstring = "";
-			pathInfo.pathArray.forEach(function (element){
-				pathstring += element;
-			});
+			for(i in pathInfo.pathArray){
+				var array = pathInfo.pathArray[i];
+				pathstring +=  array;
+				pathstring += " ";
+			}
 			path = paper.path(pathstring).attr('stroke',pathInfo.color).attr("stroke-width",pathInfo.width);
 			path.color = pathInfo.color;
 			path.id = pathInfo.id;
@@ -273,10 +278,11 @@ define(function(done){
 	//获取之前保存的笔迹中ID最大值，以便之后对新的笔迹进行编号
 	function getMaxId(saveData){
 		var id = 0;
-		saveData.pathInfoArray.forEach(function(pathInfo){
-			if(pathInfo.id > id)
-				id = pathInfo.id;
-		});
+		for(i in saveData.pathInfoArray){
+			if(saveData.pathInfoArray[i].id > id){
+				id = saveData.pathInfoArray[i].id;
+			}
+		}
 		return id;
 	}
 
