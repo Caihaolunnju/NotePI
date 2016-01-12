@@ -19,6 +19,7 @@ define(function(done){
 	var brush=false,eraser=false;
 	var idCounter=0; //对path元素ID进行编号的计数器
 	var color;
+	var font;
 
 	//笔迹存储单元，记录的是一笔的信息
 	var PathInfo = {
@@ -28,7 +29,7 @@ define(function(done){
 			pathInfo.pathArray = []; //笔迹的path中d属性的字符串
 			pathInfo.context = ""; //笔迹扫过的上下文
 			pathInfo.color = "red"; //笔记的颜色
-			pathInfo.width = 5; //笔记的粗细
+			pathInfo.font = 5; //笔记的粗细
 			pathInfo.context = []; //笔迹扫过的上下文
 			return pathInfo;
 		}
@@ -81,11 +82,20 @@ define(function(done){
 			color = request.content;
 			console.debug("颜色变为：" + color);
 		}
+		else if(request.cmd == 'setFont') {
+			font = request.content;
+			console.debug("粗细变为：" + font);
+		}
 	});
 	
 	//向background请求color
 	chrome.runtime.sendMessage({cmd:"getColor",content:"green"}, function(response){
 			color = response;
+			//console.debug("当前颜色：" + color);
+	});
+	//向background请求font
+	chrome.runtime.sendMessage({cmd:"getFont",content:"green"}, function(response){
+			font = response;
 			//console.debug("当前颜色：" + color);
 	});
 
@@ -99,10 +109,11 @@ define(function(done){
 		        y = e.offsetY;
 
 		    pathString = 'M' + x + ' ' + y + 'l0 0';
-		    path = paper.path(pathString).attr('stroke',color).attr("stroke-width",5);
+		    path = paper.path(pathString).attr('stroke',color).attr("stroke-width",font);
 		    idCounter++;
 		    path.id = idCounter;
 			path.color = color;
+			path.font = font;
 		    lastX = x;
 		    lastY = y;
 		}
@@ -247,6 +258,7 @@ define(function(done){
 			pathInfo.id = path.id;
 			pathInfo.context = path.context;
 			pathInfo.color = path.color;
+			pathInfo.font = path.font;
 			saveData.pathInfoArray.push(pathInfo);
 		}
 		return saveData;
@@ -265,7 +277,7 @@ define(function(done){
 				pathstring +=  array;
 				pathstring += " ";
 			}
-			path = paper.path(pathstring).attr('stroke',pathInfo.color).attr("stroke-width",pathInfo.width);
+			path = paper.path(pathstring).attr('stroke',pathInfo.color).attr("stroke-width",pathInfo.font);
 			path.color = pathInfo.color;
 			path.id = pathInfo.id;
 			path.context = pathInfo.context;
