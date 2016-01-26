@@ -72,6 +72,13 @@ define(function(done){
 		// 在插件内部页面里，进行自定义初始化
 		// internalPageInit方法是插件中其他模块中定义的初始化方法，如果有定义则调用
 		if((typeof internalPageInit) !== 'undefined') internalPageInit(pageAction);
+
+		// 内部页面无法使用消息机制来获得笔记颜色和粗细信息
+		// 直接访问localStorage获取
+		color = localStorage.color;
+		font = localStorage.font;
+
+		// 初始化完成
 		done();
 	}
 
@@ -105,7 +112,9 @@ define(function(done){
 		        y = e.offsetY;
 
 		    pathString = 'M' + x + ' ' + y + 'l0 0';
-		    path = paper.path(pathString).attr('stroke',color).attr("stroke-width",font);
+		    path = paper.path(pathString);
+			path.attr('stroke',color);
+			path.attr("stroke-width",font);
 		    idCounter++;
 		    path.id = idCounter;
 			path.color = color;
