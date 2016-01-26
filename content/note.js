@@ -58,6 +58,13 @@ define(function(done){
 	if(!isInternal(url)){
 		// 在普通网页里，进行正常的初始化
 		webPageInit(function(){
+			//向background请求color和font
+			chrome.runtime.sendMessage({cmd:"getColor",content:"green"}, function(response){
+					color = response;
+			});
+			chrome.runtime.sendMessage({cmd:"getFont",content:"green"}, function(response){
+					font = response;
+			});
 			// 初始化完成，不调用这个传入的方法会导致后续的模块没有机会初始化
 			done();
 		});
@@ -87,21 +94,10 @@ define(function(done){
 			console.debug("粗细变为：" + font);
 		}
 	});
-	
-	//向background请求color
-	chrome.runtime.sendMessage({cmd:"getColor",content:"green"}, function(response){
-			color = response;
-			//console.debug("当前颜色：" + color);
-	});
-	//向background请求font
-	chrome.runtime.sendMessage({cmd:"getFont",content:"green"}, function(response){
-			font = response;
-			//console.debug("当前颜色：" + color);
-	});
 
 	$('body').mousedown(function (e) {
 		console.debug("当前颜色：" + color);
-		
+
 		mousedown = true;
 		if(brush){
 			canvas.addClass("drawing");
@@ -170,7 +166,7 @@ define(function(done){
 			}else{
 				console.debug("新建笔记数据");
 			}
-			
+
 			callback();
 		});
 	}
@@ -280,6 +276,7 @@ define(function(done){
 			path = paper.path(pathstring).attr('stroke',pathInfo.color).attr("stroke-width",pathInfo.font);
 			path.color = pathInfo.color;
 			path.id = pathInfo.id;
+			path.font = pathInfo.font;
 			path.context = pathInfo.context;
 			//path.attr({'fill':'#999','stroke-opacity' : 0, 'opacity':0.5});
 			pathSet.push(path);
