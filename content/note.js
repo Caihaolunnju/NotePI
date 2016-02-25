@@ -238,13 +238,19 @@ define(function(done){
 		}
 	}
 
-	//保存的动作
+	// 页面默认保存的行为
 	function saveNote(pathSet){
 		console.debug('同步页面数据...');
 		var saveData = pkg2SaveData(pathSet);
 		notecloudUtil.page(url, function(page){
 			page.saveData = saveData;
 			notecloudUtil.sync(page,function(){
+				// 数据同步完成后也顺便保存一下截图数据
+				console.debug('同步页面截图...');
+				pageshotAPI.savePageshot();
+
+				// 同步完成后重新取出同步完的对象
+				// 只是测试使用，没有实际的生产意义
 				notecloudUtil.page(url, function(page){
 					console.debug('同步后对象:%s', JSON.stringify(page));
 				});

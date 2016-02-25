@@ -25,7 +25,7 @@ define(function(done){
     var coolTimeout = null; // 冷却机制使用的timeout对象
 
     var FIRST_SCREENSHOT_TIME = 4000; // 页面加载后触发第一次截屏的等待时间
-    var SCREENSHOT_INTERVAL = 2000; // 每次截屏的时间间隔
+    var SCREENSHOT_INTERVAL = 1000; // 每次截屏的时间间隔
 
     // 自动同步时间间隔（毫秒）
 	// 设置为false则关闭自动同步功能
@@ -41,7 +41,6 @@ define(function(done){
     var pageshot = null;
 
     // 获取上一次截图的信息，用于在本次保存截图时将本次截图数据与上一次的数据合并
-    console.debug('检查已有截图数据...');
     notecloudUtil.pageshot(currentURL, function(ps){
         pageshot = ps;
         setupAutoSync();
@@ -74,27 +73,6 @@ define(function(done){
 
         done();
     });
-
-    /**
-     * 提供给其他模块调用打开截图接口
-     * 如果截图已经加载，直接打开
-     * 如果还没有加载，则等待加载完成后再打开
-     * 注意，如果不调用这个接口则截图不会自己打开
-     */
-    pageshotAPI.openPageshot = function(){
-        // 已经有了截图数据，直接打开
-        if(pageshot && pageshot.data){
-            openPageshot({
-                url: pageshot.data,
-                width: pageshot.width,
-                height: pageshot.height
-            });
-        }
-        // 否则等待数据加载完后再打开
-        else{
-            toOpenPageshot = true;
-        }
-    };
 
     // 网页滚动事件监听
     $(window).scroll(function(){
@@ -323,5 +301,35 @@ define(function(done){
         }
 
         return null;
+    };
+
+    //----- 以下为pageshot模块对外开放的接口 ---------
+
+    /**
+     * 提供给其他模块调用打开截图接口
+     * 如果截图已经加载，直接打开
+     * 如果还没有加载，则等待加载完成后再打开
+     * 注意，如果不调用这个接口则截图不会自己打开
+     */
+    pageshotAPI.openPageshot = function(){
+        // 已经有了截图数据，直接打开
+        if(pageshot && pageshot.data){
+            openPageshot({
+                url: pageshot.data,
+                width: pageshot.width,
+                height: pageshot.height
+            });
+        }
+        // 否则等待数据加载完后再打开
+        else{
+            toOpenPageshot = true;
+        }
+    };
+
+    /**
+     * 保存当前的截图数据
+     */
+    pageshotAPI.savePageshot = function(){
+        tabSavePageshot();
     };
 });

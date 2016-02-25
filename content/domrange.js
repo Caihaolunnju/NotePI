@@ -156,5 +156,4 @@ define(function(done){
 			}
 		});
 	};
-
 });
