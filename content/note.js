@@ -20,6 +20,7 @@ define(function(done){
 	var idCounter=0; //对path元素ID进行编号的计数器
 	var color;
 	var font;
+	var matchRatio;
 
 	//笔迹存储单元，记录的是一笔的信息
 	var PathInfo = {
@@ -58,12 +59,17 @@ define(function(done){
 	if(!isInternal(url)){
 		// 在普通网页里，进行正常的初始化
 		webPageInit(function(){
-			//向background请求color和font
+			//向background请求color和font和matchRatio
 			chrome.runtime.sendMessage({command:"getColor"}, function(response){
 				color = response;
 			});
 			chrome.runtime.sendMessage({command:"getFont"}, function(response){
 				font = response;
+				console.debug("font:" + font);
+			});
+			chrome.runtime.sendMessage({command:"getMatchRatio"}, function(response){
+				matchRatio = response;
+				console.debug("matchRatio:" + matchRatio);
 			});
 			// 初始化完成，不调用这个传入的方法会导致后续的模块没有机会初始化
 			done();
@@ -78,6 +84,7 @@ define(function(done){
 		// 直接访问localStorage获取
 		color = localStorage.color;
 		font = localStorage.font;
+		matchRatio = localStorage.matchRatio;
 
 		// 初始化完成
 		done();

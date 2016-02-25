@@ -16,7 +16,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
 		sendResponse(localStorage.font);
 	}
 
-	//获取画笔粗细
+	//获取匹配度阈值
 	if(message.command == 'getMatchRatio') {
 		sendResponse(localStorage.matchRatio);
 	}
@@ -31,5 +31,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
 	if(message.command == 'setFont') {
 		localStorage.font = message.content;
 		console.debug("笔的粗细设置为：" + localStorage.font);
+	}
+
+	//设置匹配度阈值
+	if(message.command == 'setMatchRatio') {
+		localStorage.matchRatio = message.content;
+		console.debug("匹配度阈值：" + localStorage.font);
 	}
 });

@@ -1,5 +1,6 @@
 ﻿var color;
 var font;
+var matchRatio;
 chrome.runtime.sendMessage({command:"getColor"}, function(response){
     color = response;
 	//处理选项卡中的画笔颜色
@@ -31,6 +32,20 @@ chrome.runtime.sendMessage({command:"getFont"}, function(response){
 	}
 });
 
+chrome.runtime.sendMessage({command:"getMatchRatio"}, function(response){
+    matchRatio = response;
+	//处理选项卡中的匹配度阈值
+	if(matchRatio == 0.3) {
+		document.getElementsByName('match')[0].checked = true;
+	} else if(matchRatio == 0.5) {
+		document.getElementsByName('match')[1].checked = true;
+	} else if(matchRatio == 0.8) {
+		document.getElementsByName('match')[2].checked = true;
+	} else if(matchRatio == 1) {
+		document.getElementsByName('match')[3].checked = true;
+	}
+});
+
 //点击保存按钮
 document.getElementById('save').onclick = function(){
 	//保存画笔颜色
@@ -55,11 +70,24 @@ document.getElementById('save').onclick = function(){
 	} else if(document.getElementsByName('font')[3].checked) {
 		font = 10;
 	}
+	//保存匹配度阈值
+	if(document.getElementsByName('match')[0].checked) {
+		matchRatio = 0.3;
+	} else if(document.getElementsByName('match')[1].checked) {
+		matchRatio = 0.5;
+	} else if(document.getElementsByName('match')[2].checked) {
+		matchRatio = 0.8;
+	} else if(document.getElementsByName('match')[3].checked) {
+		matchRatio = 1;
+	}
 	//给background发消息
 	chrome.runtime.sendMessage({command:"setColor",content:color}, function(response){
 		//document.write(response);
 	});
 	chrome.runtime.sendMessage({command:"setFont",content:font}, function(response){
+		//document.write(response);
+	});
+	chrome.runtime.sendMessage({command:"setMatchRatio",content:matchRatio}, function(response){
 		//document.write(response);
 	});
 	//给contentpage发消息
