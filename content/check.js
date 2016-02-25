@@ -42,20 +42,30 @@ define(function(done){
 		return true;
 	}
 
-	checkAPI.checkPage = function(saveData, pathSet){
+	checkAPI.checkPage = function(saveData, pathSet, callback){
 		var domResult = checkPageDom(pathSet);
 		var sizeCheck = checkWidthHeight(saveData);
 		if(sizeCheck){
-			alert("宽高没有发生变化！\n笔迹内容匹配率为："+(domResult.ratio*100).toFixed(1)+"%.");
+			// alert("宽高没有发生变化！\n笔迹内容匹配率为："+(domResult.ratio*100).toFixed(1)+"%.");
+			console.debug('宽高没有发生变化');
 			domRange.checkNoteNotMatch(pathSet);
 		}
 		else{
-			alert("宽高发生变化！\n笔迹内容匹配率为："+(domResult.ratio*100).toFixed(1)+"%.");
+			console.debug('宽高发生变化');
 		}
-		return {'noMatchIDs' : domResult.noMatchIDs,
-				'ratio' : domResult.ratio,
-				'sizeCheck' : sizeCheck};
+
+		// 要返回的检查结果数据
+		var checkData = {
+			'noMatchIDs' : domResult.noMatchIDs,
+			'ratio' : domResult.ratio,
+			'sizeCheck' : sizeCheck
+		};
+
+		// 检查是否满足阈值
+		chrome.runtime.sendMessage({command:"getMatchRatio"}, function(matchRatio){
+			checkData.matches = (domResult.ratio >= matchRatio);
+			// 返回检查结果
+			callback(checkData);
+		});
 	}
-
-
 });

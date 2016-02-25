@@ -1,6 +1,6 @@
 ﻿var color;
 var font;
-chrome.runtime.sendMessage({cmd:"getColor"}, function(response){
+chrome.runtime.sendMessage({command:"getColor"}, function(response){
     color = response;
 	//处理选项卡中的画笔颜色
 	if(color == "red") {
@@ -17,7 +17,7 @@ chrome.runtime.sendMessage({cmd:"getColor"}, function(response){
 
 });
 
-chrome.runtime.sendMessage({cmd:"getFont"}, function(response){
+chrome.runtime.sendMessage({command:"getFont"}, function(response){
     font = response;
 	//处理选项卡中的画笔粗细
 	if(font == 1) {
@@ -56,18 +56,18 @@ document.getElementById('save').onclick = function(){
 		font = 10;
 	}
 	//给background发消息
-	chrome.runtime.sendMessage({cmd:"setColor",content:color}, function(response){
+	chrome.runtime.sendMessage({command:"setColor",content:color}, function(response){
 		//document.write(response);
 	});
-	chrome.runtime.sendMessage({cmd:"setFont",content:font}, function(response){
+	chrome.runtime.sendMessage({command:"setFont",content:font}, function(response){
 		//document.write(response);
 	});
 	//给contentpage发消息
 	chrome.tabs.query({}, function(tabs) {
 		for (i in tabs) {
 			//console.debug("aa");
-			chrome.tabs.sendMessage(tabs[i].id, {cmd:"setColor",content:color});
-			chrome.tabs.sendMessage(tabs[i].id, {cmd:"setFont",content:font});
+			chrome.tabs.sendMessage(tabs[i].id, {command:"setColor",content:color});
+			chrome.tabs.sendMessage(tabs[i].id, {command:"setFont",content:font});
 		}
     });
     alert('保存成功:' + "颜色：" + color + "粗细：" + font);

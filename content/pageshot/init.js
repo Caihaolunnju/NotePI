@@ -29,7 +29,7 @@ var internalPageInit = function(pageAction){
     // 这里做了一个hack，重写页面中的saveNote方法来把saveNote方法转发到源网页中
     pageAction.saveNote = function(){
         chrome.tabs.sendMessage(srcTabId, {
-            'cmd': 'saveNote'
+            'command': 'saveNote'
         });
     };
 };

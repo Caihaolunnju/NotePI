@@ -91,7 +91,7 @@ define(function(done){
 		}
 		var set = domSet.pickAll();
 		return set;
-	};	
+	};
 
 	var _compareXPath = function(domSet){
 		for(var i in domSet){
@@ -142,8 +142,8 @@ define(function(done){
 
 	domRange.getContext = function(path){
 		return _getRelatedDOMSet(path);
-	};	
-	
+	};
+
 	domRange.checkXPath = function(pathSet){
 		return _checkXPath(pathSet);
 	};

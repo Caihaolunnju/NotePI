@@ -59,11 +59,11 @@ define(function(done){
 		// 在普通网页里，进行正常的初始化
 		webPageInit(function(){
 			//向background请求color和font
-			chrome.runtime.sendMessage({cmd:"getColor",content:"green"}, function(response){
-					color = response;
+			chrome.runtime.sendMessage({command:"getColor"}, function(response){
+				color = response;
 			});
-			chrome.runtime.sendMessage({cmd:"getFont",content:"green"}, function(response){
-					font = response;
+			chrome.runtime.sendMessage({command:"getFont"}, function(response){
+				font = response;
 			});
 			// 初始化完成，不调用这个传入的方法会导致后续的模块没有机会初始化
 			done();
@@ -71,7 +71,8 @@ define(function(done){
 	}else{
 		// 在插件内部页面里，进行自定义初始化
 		// internalPageInit方法是插件中其他模块中定义的初始化方法，如果有定义则调用
-		if((typeof internalPageInit) !== 'undefined') internalPageInit(pageAction);
+		if((typeof internalPageInit) !== 'undefined')
+			internalPageInit(pageAction);
 
 		// 内部页面无法使用消息机制来获得笔记颜色和粗细信息
 		// 直接访问localStorage获取
@@ -84,19 +85,19 @@ define(function(done){
 
 	//根据popup发出的消息进行回应
 	chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-		if (request.cmd == "brush")
+		if (request.command == "brush")
 		    toggleBrush();
-		else if(request.cmd == "eraser")
+		else if(request.command == "eraser")
 		  	toggleEraser(pathSet);
-		else if(request.cmd == "buttonStatus")
+		else if(request.command == "buttonStatus")
 			buttonStatus(sendResponse);
-		else if(request.cmd == "saveNote")
+		else if(request.command == "saveNote")
 			saveNote(pathSet);
-		else if(request.cmd == 'setColor') {
+		else if(request.command == 'setColor') {
 			color = request.content;
 			console.debug("颜色变为：" + color);
 		}
-		else if(request.cmd == 'setFont') {
+		else if(request.command == 'setFont') {
 			font = request.content;
 			console.debug("粗细变为：" + font);
 		}
@@ -167,11 +168,20 @@ define(function(done){
 			if(typeof response != "undefined" && typeof response.saveData != "undefined"){
 					console.debug("发现已有笔记，还原...");
 					var saveData = response.saveData;
+					// 不管匹配度都还原笔记
 					pathSet = loadingNote(saveData, paper);
 					idCounter = getMaxId(saveData);
-					if(typeof checkAPI !== 'undefined'){
-						var result = checkAPI.checkPage(saveData, pathSet);	//会返回检查页面的结果
-					}
+
+					// 页面匹配度检查
+					checkAPI.checkPage(saveData, pathSet, function(checkData){
+						// 匹配度没到匹配度阈值，显示截图
+						if(!checkData.matches){
+							console.debug('匹配度过低[匹配度'+checkData.ratio+']，准备显示截图...');
+							pageshotAPI.openPageshot();
+						}else{
+							console.debug('通过匹配度检查[匹配度'+checkData.ratio+']，不显示截图');
+						}
+					});
 			}else{
 				console.debug("新建笔记数据");
 			}

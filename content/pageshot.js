@@ -1,6 +1,8 @@
 /**
  * 截图功能模块
  */
+var pageshotAPI = {};
+
 define(function(done){
     // 截图宽度应该只有可见部分
     var pageWidth = document.body.scrollWidth
@@ -32,25 +34,33 @@ define(function(done){
     // 本页面的url
     var currentURL = window.location.href;
 
+    // 是否要显示截图的flag
+    var toOpenPageshot = false;
+
     // 截图文件对象
     var pageshot = null;
 
-    // 获取上一次截图的信息，如果有则打开截图
+    // 获取上一次截图的信息，用于在本次保存截图时将本次截图数据与上一次的数据合并
     console.debug('检查已有截图数据...');
     notecloudUtil.pageshot(currentURL, function(ps){
         pageshot = ps;
         setupAutoSync();
 
-        // 如果有数据，则打开
-        if(pageshot.data){
-            console.debug('存在上次保存的截图，正在获取...')
-            openPageshot({
-                url: pageshot.data,
-                width: pageshot.width,
-                height: pageshot.height
-            });
-        }else{
-            console.debug('新截图');
+        // 页面匹配度检查要求打开截图
+        if(toOpenPageshot){
+            // 有数据则打开
+            if(pageshot.data){
+                console.debug('存在上次保存的截图，正在获取并打开...')
+                openPageshot({
+                    url: pageshot.data,
+                    width: pageshot.width,
+                    height: pageshot.height
+                });
+            }
+            // 否则创建新截图
+            else{
+                console.debug('新截图');
+            }
         }
 
         // 来自popup的pageshot相关消息处理
@@ -64,6 +74,27 @@ define(function(done){
 
         done();
     });
+
+    /**
+     * 提供给其他模块调用打开截图接口
+     * 如果截图已经加载，直接打开
+     * 如果还没有加载，则等待加载完成后再打开
+     * 注意，如果不调用这个接口则截图不会自己打开
+     */
+    pageshotAPI.openPageshot = function(){
+        // 已经有了截图数据，直接打开
+        if(pageshot && pageshot.data){
+            openPageshot({
+                url: pageshot.data,
+                width: pageshot.width,
+                height: pageshot.height
+            });
+        }
+        // 否则等待数据加载完后再打开
+        else{
+            toOpenPageshot = true;
+        }
+    };
 
     // 网页滚动事件监听
     $(window).scroll(function(){
